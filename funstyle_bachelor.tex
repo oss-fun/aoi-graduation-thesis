@@ -1,0 +1,35 @@
+% # 公立はこだて未来大学・卒業論文書式定義ファイル
+%
+% ## 使用法；
+% - main.texを参照してください．
+% - **このファイルを変更する必要はありません**．
+
+
+\documentclass[uplatex, a4paper, report, 11pt, oneside]{jsbook}
+
+% packages
+\usepackage[utf8]{inputenc}
+\usepackage[dvipdfmx]{graphicx}
+\usepackage{lmodern}             % use latin modern font
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{url}
+\usepackage{layout}
+\usepackage{fancyhdr} 
+\usepackage{etoolbox}
+
+% page size
+\textheight     = 22.2truecm
+\textwidth      = 14.7truecm
+\oddsidemargin  = 0.6truecm
+
+% header and footer
+\pagestyle{fancy}
+\setlength{\footskip}{22pt}
+\fancyhf{}
+\renewcommand{\chaptermark}[1]{\markboth{\thechapter.\ #1}{}}
+\renewcommand{\headrulewidth}{0pt}
+\lhead{\it\small{{\eshorttitle}}}
+\cfoot{\thepage}
+\lfoot{~~\\\small{\it{BA thesis, Future University Hakodate}}}
+
+

@@ -1,0 +1,8 @@
+#句読点などを統一
+sed -i -e "s/、/，/g" -e "s/。/．/g" main.tex
+sed -i -e "s/、/，/g" -e "s/。/．/g" chapters/*.tex
+#TODO chapterにも適用
+
+docker run --rm -v $PWD:/workdir paperist/alpine-texlive-ja sh -c \
+    "ptex2pdf -interaction=nonstopmode -l -u -ot -kanji=utf8 -synctex=1 main.tex"
+# rm -f main.aux main.dvi main.bbl main.blg main.fdb_latexmk main.toc main.fls
