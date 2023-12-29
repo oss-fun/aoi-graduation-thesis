@@ -1,0 +1,141 @@
+\chapter{評価}
+\begin{table}[t]
+    \caption{実験に用いたエッジデバイスの仕様}
+    \label{table:device-machine-spec}
+    \centering
+    \scalebox{1} {
+    \begin{tabular}{c|l} \hline\hline
+        OS & Ubuntu 22.04 \\
+        Linux kernel & 6.5.6-76060506-generic \\
+        CPU & 11th Gen Intel i5-1135G7 (8) @ 4.200GHz \\
+        RAM & 16 GB \\ \hline
+    \end{tabular}
+    }
+\end{table}
+
+\begin{table}[t]
+    \caption{実験に用いたクラウドの仕様}
+    \label{table:cloud-machine-spec}
+    \centering
+    \scalebox{1} {
+    \begin{tabular}{c|l} \hline\hline
+        OS & Ubuntu 22.04 \\
+        Linux kernel & 5.15.0-86-generic \\
+        CPU & Intel Xeon Silver 4208 (16) @ 3.200GHz \\
+        RAM & 32 GB \\ \hline
+    \end{tabular}
+    }
+\end{table}
+
+
+本研究では，エッジデバイスとクラウド同等の性能のマシンで実験を行った．
+エッジデバイスの仕様を表\ref{table:device-machine-spec}に示す．
+クラウドの仕様を表\ref{table:cloud-machine-spec}に示す．
+
+
+\section{異種ランタイム間の性能比較}
+\begin{figure}[t]
+    \centering
+    \includegraphics*[width=1\linewidth]{images/wasm_speed}
+    \caption{sqlite-benchの各項目の実行速度 (マイクロ秒/op)}
+    \label{fig:sqlite-bench-speed}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics*[width=1\linewidth]{images/wasm_rss}
+    \caption{sqlite-bench実行時の物理メモリ使用量}
+    \label{fig:sqlite-bench-rss}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics*[width=1\linewidth]{images/wasm_time}
+    \caption{sqlite-benchのエントリ数ごとの実行時間}
+    \label{fig:sqlite-bench-time}
+\end{figure}
+
+WasmEdgeとWAMRの性能に特徴があるのかを調べるため，WasmEdgeとWAMRで，SQLiteのベンチマークを計測するsqlite-benchを使用した．
+評価する項目は，実行時間，メモリ使用量，sqlite-benchが計測するSQLiteの各項目の実行速度である
+sqlite-benchは，SQLiteの次の項目の実行速度について計測した．
+\begin{itemize}
+    \item fillseq: 非同期モードでシーケンシャルキー順にN個の値を書き込んだときの実行速度
+    \item fillseqsync: 同期モードでシーケンシャルキー順にN/100個の値を書き込んだときの実行速度
+    \item fillseqbatch: 非同期モードでN個の値を逐次キー順にバッチ書き込んだときの実行速度
+    \item fillrandom: 非同期モードでランダムなキー順でN個の値を書き込んだときの実行速度
+    \item fillrandsync: 同期モードでランダムなキー順でN/100個の値を書き込んだときの実行速度
+    \item fillrandbatch: 非同期モードでランダムなキー順でN個の値をバッチ書き込んだときの実行速度
+    \item overwrite: 非同期モードでランダムなキー順でN個の値を上書きしたときの実行速度
+    \item fillrand100K: 非同期モードでランダムなキー順でN/1000個の100K個の値を書き込んだときの実行速度
+    \item fillseq100K: 非同期モードで，N/1000個の100K値を順次読み込んだときの実行速度
+    \item readseq: N回連続して読み込む込んだときの実行速度
+    \item readrandom: ランダムにN回読み込んだときの実行速度
+    \item readrand100K: 非同期モードでN/1000個の100K値を順次読み込んだときの実行速度
+\end{itemize}
+
+本研究は，sqlite-benchをWasm化し，表\ref{table:device-machine-spec}で示したマシン上で，WasmEdgeとWAMRを用いて実行した．
+sqlite-benchのエントリ数を10, 100, 1000, 10000, 100000に変化させた．
+計測した値は，実行時間，実行中の物理メモリ使用量 (RSS)，sqlite-benchで計測した値である．
+実行時間はtimeコマンドを利用し，sqlite-benchを起動してから，終了するまでの実時間を計測した．
+実行中の物理メモリ使用量 (RSS)は，Pythonのpsutilライブラリを利用して，計測した．
+
+
+図\ref{fig:sqlite-bench-speed}は，sqlite-benchが計測する各項目の実行速度である．グラフを見ると，WasmEdgeで動作させた方がすべての項目について，WAMRよりも実行速度が速い．
+例えば，fillseqは，WasmEdgeで動作させると1エントリあたり328.898マイクロ秒であるが，WAMRで動作させると1エントリあたり2868.891マイクロ秒であった．
+これは，およそ8.7倍の実行速度の差がある．
+
+図\ref{fig:sqlite-bench-rss}は，sqlite-benchをエントリ数100で実行したときのメモリ使用量である．
+WAMRのメモリ使用量はおよそ20MBであるが，WasmEdgeのメモリ使用量はおよそ60MBである．
+WAMRで動作させた方が，WasmEdgeで動作させるよりも物理メモリ使用量が少ないことがわかる．
+
+図\ref{fig:sqlite-bench-time}は，sqlite-benchの実行時間である．
+エントリ数が1000まではWAMRの方が実行時間が短いが，10000を超えると急激に長くなっている．
+エントリ数が小さい時，実行速度が速いWasmEdgeがWAMRよりも実行時間が長くなっている理由としては，
+WasmEdgeがWAMRよりも起動時間が長いことが考えられる．
+
+これらの結果から，WasmEdgeは起動時間が遅く，実行速度が速く，メモリ使用量が大きい．
+一方，WAMRは起動時間が速く，実行速度が遅く，メモリ使用量が小さい．
+このように，ランタイムごとに特性が異なり，トレードオフの関係になっている．
+したがって，環境や要求に合わせて，異種Wasmランタイム間でマイグレーションをすることは，性能や可用性の向上が期待できる．
+
+\section{ライブマイグレーション性能}
+\begin{figure}[t]
+    \centering
+    \includegraphics*[width=1\linewidth]{images/migration-perf}
+    \caption{マイグレーションの保存・復元にかかる時間 (ミリ秒)}
+    \label{fig:migration-performance}
+\end{figure}
+
+\begin{figure}[t]
+    \centering
+    \includegraphics*[width=1\linewidth]{images/migration_file_size}
+    \caption{マイグレーションの実行状態のファイルサイズ (キロバイト)}
+    \label{fig:migration-file-size}
+\end{figure}
+
+本研究で実装したWasmEdge，WAMRのWasmライブマイグレーションの性能と，
+既存のプロセスマイグレーション技術のCRIUのライブマイグレーションの性能を比較した．
+評価項目は，保存時間，復元時間，実行状態を復元するためのファイルサイズの合計である．
+表\ref{table:cloud-machine-spec}のマシンで，各実験を30回繰り返し，各項目の平均を求めた．
+使用したアプリケーションは，n-bodyというベンチマークプログラムである．
+n-bodyのソースコードは，The Computer Language Benchmarks Gameのものを使用し，
+wask-sdkでコンパイルした．
+
+図\ref{fig:migration-performance}に，WasmEdge，WAMR，CRIUそれぞれの保存にかかる時間，復元にかかる時間 (積み立て棒グラフ)に示す．
+また，図\ref{fig:migration-file-size}に，WasmEdge，WAMR，CRIUそれぞれの復元に必要なファイルのサイズ (積み立てグラフ)を示す．
+
+復元時間，ファイルサイズいずれも，CRIUマイグレーションに比べ，Wasmマイグレーションの方が性能が優れていた．
+保存時間は，CRIUと比較して，WasmEdgeが約1.4倍遅く，WAMRが約8.3倍速かった．
+復元時間は，CRIUと比較して，WasmEdgeが約10倍，WAMRが約20倍速かった．
+ファイルサイズは，CRIUと比較して，WasmEdgeとWAMRともに約3.8倍小さかった．
+
+% エッジコンピューティングのような通信帯域が，データセンターのように非常に大きくない環境において，ファイルサイズが小さいことで，通信帯域をあまり使わないので，Wasmマイグレーションの方が向いていると言える．
+エッジコンピューティングは，データセンターに比べ通信帯域が大きくないため，
+ファイルサイズが小さいWasmマイグレーションは，マイグレーション時に少ないデータ転送量で済む．
+また，Wasmマイグレーションは，保存・復元時間が小さいため，ダウンタイムが短い．
+さらに，WasmマイグレーションはCRIUマイグレーションに比べ，多様なプラットフォーム間でマイグレーション可能である．
+これらの3つの点に関しては，エッジコンピューティングでは，Wasmマイグレーションの方が，CRIUよりも適していると言える．
+
+
+% \subsubsection{改変ランタイムと元のランタイムの比較}
+% hogehoge
