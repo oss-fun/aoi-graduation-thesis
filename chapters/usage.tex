@@ -1,5 +1,11 @@
-\chapter{mROS 2-POSIXとROS 2}
-\label{sec:mros2-posix}
+\chapter{使用した技術}
+%rosについてもっと深堀する
+%例：パッケージの作り方、ノードの作り方、パブリッシャーとはなにか、サブスクライバーとはなにか
+%ROSのパブリッシャーとサブスクライバーの作り方、mROS 2の作り方embeddedRTPSについても話せるとよい
+%C++とpythonの違いを述べる．本実装ではなぜC++を選択したのかを書く
+%ついでにサービスとアクションについても述べる
+%messageの中身についても語りたい。後で説明が楽になる
+\label{sec:usage}
 \section{ROS 2}
 ROS 2は，ROSの後継であり，ROS 2はROS 1と比べて，分散型のロボットシステムに対応している．
 ROS 1では，主にUDPを使用したメッセージ型の通信を行っていたが，ROS 2では，DDSと呼ばれる通信ミドルウェアを採用しており，RTPS（Real Time Publish Subscribe）プロトコルを用いた
