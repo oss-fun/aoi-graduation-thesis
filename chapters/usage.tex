@@ -202,5 +202,5 @@ ROS 2では様々なメッセージ型を定義して通信することができ
 これらのメッセージ型は，mROS 2-POSIXでも利用することができるが，ほかのメッセージ型もmros2/mros2\_header\_generatorの.pyファイルを用いて生成することができる．
 生成したいメッセージファイルはcustom\_msgs/の中に入れないと生成できない．また階層構造はかならず○○\_msgs/msg/○○.msgという形にしないと生成できない．
 またメッセージファイルのなかにコメント分があるとコメントも一緒に取り込んでsplitするので注意する必要がある．
-やり方はmros2-posix/workspaceに移動してpython3 ../mros2/mros2\ _header\_generator.py custom\_msgs/msgs/xxx.msgという形で記述する．
+やり方はmros2-posix/workspaceに移動してpython3 ../mros2/mros2\_header\_generator.py custom\_msgs/msgs/xxx.msgという形で記述する．
 いろいろ制限が多いものの，やり方さえ覚えてしまえば，既存のROS 2と同様にメッセージファイルを生成することができる．
