@@ -61,7 +61,9 @@ CycloneRTPSはROS 2のデフォルトのRTPSである．しかしmROS 2-POSIXと
     \item ROS 2制御ノード側のサブスクリプションのQoS設定のDurabilityをTRANSIENT\_LOCALにする
     \item rqt consoleやrqt configをPC側から立ち上げ，トピックとデータの流れを確認しながらデバックする
 \end{itemize}
-
-\section{実装アプリケーション変更に伴って生じる影響}
+mROS 2-POSIXのpayloadの上限を決めることで，payloadが大きすぎるというエラーを回避することができると考えている．payloadの上限を決めることができる箇所を調査中である．
+また，ROS 2制御ノード側のサブスクリプションのQoS設定のDurabilityをTRANSIENT\_LOCLAにすることでパブリッシュが成功しない現状を回避できる可能性があると考える．
+いままでのデバックはコンソールからのデバックであったため，PCのGUIを使ってデバックすることで，より詳細に原因を突き止めることができると考えている．
+上記の解決策を試しながら，今後とも問題の解決に向けて取り組んでいく．
 
 
