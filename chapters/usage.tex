@@ -34,7 +34,7 @@ SPDPは，Participantの情報を送受信するためのプロトコルであ�
 この通信のエンドポイントは，Participant同士のパブリッシュ，サブスクライブである．
 \\　RTPSをOSI参照モデルに例えるとtransport層に位置し，UDP/IPの上に実装されている．UDP通信にはパケットの到着に関する保証がないが，ROS 2のDDSではこれを補助するQoS（Quality of Service）制御の機能がある．
 QoS制御は，サブスクライバ，パブリッシャごとに設定でき，厳格な条件であればRELIABLE（信頼性の高い通信）を，緩やかな条件であればBEST EFFORT（ベストエフォート通信）を選択することができる．
-ROS 2のデフォルトDDS[]であるFastRTPS[10]では，QoS制御の機能が実装されており，各ノードが通信するときのQoS設定はRELIABLEである．
+ROS 2のデフォルトDDSであるFastRTPS[10]では，QoS制御の機能が実装されており，各ノードが通信するときのQoS設定はRELIABLEである．
 \subsection{ノードの作り方とパッケージ}
 ROS 2においてノードを作成する場所は決まっており，一般的にはros2\_ワーキングスペース（ws）というディレクトリを作った後，その中にsrcというディレクトリを作成し，その中にノードを作成する．
 srcディレクトリを作成した後，ros2\_wsディレクトリでcolcon buildというコマンドを実行することで，ros2\_wsの中でノードを作成することがきる．
@@ -95,8 +95,8 @@ mROS 2は，ROS 2ノードの軽量実行環境である．
 ROS 2を採用するロボットシステムにおいて通信方式とメモリ軽量な実行環境を確立することができる組み込み技術を導入することにより，分散型のロボットシステムにおける応答性やリアルタイム性の向上，消費電力の削減が可能になる．
 mROS 2は汎用OS上で実行されるROS 2ノードと通信できることを目的として実装された．
 そのため，パブリッシューサブスクライブ通信の相手と経路を自律的に探索できるように設計され，ROS 2およびRTPSの利点が，組み込み技術導入時に損なわれないようになっている．
-ROS 2に対応しているDDSの種類として，FastRTPS，RTI Connext DDS，eProsima Micro XRCE-DDSを挙げたが，既存の組込みデバイス向けのROS 2ノード実行環境であるmicro-ROS[?]がある．
-micro-ROSはRTPSの軽量規格であるDDS-XRCE（DDS For Extremely Resource Constrained Enviroments）[16]の実装であるMicro XRCE-DDSを採用している．
+ROS 2に対応しているDDSの種類として，FastRTPS，RTI Connext DDS，eProsima Micro XRCE-DDSを挙げたが，既存の組込みデバイス向けのROS 2ノード実行環境であるmicro-ROS[16]がある．
+micro-ROSはRTPSの軽量規格であるDDS-XRCE（DDS For Extremely Resource Constrained Enviroments）の実装であるMicro XRCE-DDSを採用している．
 Micro　XRCE-DDSは，ホストとしてROS 2ノードを実行するデバイスと通信する際に，Agentノードと呼ばれるノードの稼働が必要となる．
 通信の仲介の役割をAgentノードはになっており，Agentノードは，ホストデバイス上のROS 2ノードとRTPSに則った通信，組み込みデバイス上のノードとXRCEに則った通信がそれぞれ行われるため，
 応答性とリアルタイム性の低下が懸念される．また，複数の組み込みデバイスを用いる場合，Agent ノードは分散型システム全体の通信を仲介するため，Agentノードの数が増えると通信の遅延が増加する．
@@ -135,7 +135,7 @@ mROS 2通信ライブラリでは，rclcppのうちpub/sub通信の基本的な�
 そのためmROS 2-POSIXはサービス通信やアクション通信には対応していない．
 \\　RTPSプロトコルスタックにはUDPでパブリッシャとサブスクライバC++実装のembeddedRTPSが採用されている．
 UDPについては組込み向けのC実装であるlwIPが採用されている．
-通信層のembeddedRTPSおよびlwIP[21]はCMSAIS-POSIX[22]に依存しており，図1（b）に示すmROS 2のCMSIS-RTOSを互換した層になっている．
+通信層のembeddedRTPSおよびlwIPはCMSAIS-POSIX[21]に依存しており，図1（b）に示すmROS 2のCMSIS-RTOSを互換した層になっている．
 最下層にはハードウェアを抽象化したライブラリがある．
 \\　mROS 2-POSIXは図2に示す実行方式を採用している．
 リアルタイムOSでは，組込みマイコンを実行資源の管理対象として，タスク単位でアプリケーションが実行される．
