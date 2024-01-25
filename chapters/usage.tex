@@ -78,15 +78,15 @@ ROS 2では，パブリッシャーとサブスクライバー以外にもサー
     \centering
     \begin{minipage}{.48\textwidth}
         \centering
-        \includegraphics[width=0.9\linewidth]{images/fig1_mros2posix_a.png}
-        \caption{mROS 2-POSIXの内部構成}
+        \includegraphics[width=0.9\linewidth]{images/fig1_mros2_b.png}
+        \caption{mROS 2の内部構成}
         \label{fig:subfig_a}
     \end{minipage}
     \hfill
     \begin{minipage}{.48\textwidth}
         \centering
-        \includegraphics[width=0.9\linewidth]{images/fig1_mros2_b.png}
-        \caption{mROS 2の内部構成}
+        \includegraphics[width=0.9\linewidth]{images/fig1_mros2posix_a.png}
+        \caption{mROS 2-POSIXの内部構成}
         \label{fig:subfig_b}
     \end{minipage}
 \end{figure}
@@ -108,7 +108,7 @@ embeddeRTPSは，一つのDomainクラスからParticipant，Writer，Readerの�
 また，ROS 2で代表的なFastRTPSと通信の確認ができているため親和性が高い点も上げられる．
 以上の設計思想によりmROS 2は，計算資源の限定的な組み込みデバイス上での稼働を想定した組込みデバイスのリアルタイム性の向上および消費電力の削減ができるソフトウェア基盤である．
 \subsection{mros2の内部構成}
-図1（a）にmros2の内部構成を示す．
+図2.1にmros2の内部構成を示す．
 ユーザーアプリケーションからの階層順で，mROS 2通信ライブラリ，通信プロトコルスタック，RTOS，ハードウェア抽象化ライブラリによって構成される．
 mROS 2通信ライブラリは，ユーザアプリケーションに対して，ROS 2通信のトピックに関する基本的なAPIを提供している．
 主なAPIとして void mros2::init()，void mros2::Node::create\_node()，void mros2::Publisher::create\_publisher()，void mros2::Subscriber::create\_subscriber()がある．
@@ -126,7 +126,7 @@ writer taskとreader taskに関しては，パブリッシュおよびサブス�
 writer taskはパブリッシュの依頼を受けて起動し，reader taskはサブスクライブの依頼を受けて起動する．
 \subsection{mROS 2-POSIXの内部構成}
 そして，mROS 2がPOSIX[20]に対応したのがmROS 2-POSIXである．
-\\　図1（b）は，mROS 2-POSIXのソフトウェア構成を示す．mROS 2-POSIXアプリケーション層は，ユーザが実装するROS 2ノードに相当する．
+\\　図2.2は，mROS 2-POSIXのソフトウェア構成を示す．mROS 2-POSIXアプリケーション層は，ユーザが実装するROS 2ノードに相当する．
 つまり，ROS 2におけるオーバーレイに相当する層である．
 mROS 2-POSIX API層および通信ライブラリ層は，メッセージを非同期にパブリッシュやサブスクライブするためのコミュニケーションチャネルであるROS 2のTopicに相当するAPIおよび通信機能を提供する階層である．
 本階層は，ROS 2のネイティブなクライアント通信ライブラリであるrclcppと互換性を保つように設計されている．

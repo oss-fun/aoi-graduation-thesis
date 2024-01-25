@@ -1,9 +1,16 @@
 \chapter{実装}
 %ラズパイマウスのfollowerノードについての実装を書く．今はspheroとラズパイマウスのwiibordを本実装として話しているため改変が必要．aproachに持っていく．
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=10cm]{images/fig4_mros2_ros2_raspimouse_configuration.png}
+    \caption{Raspberry Pi Mouseを制御するアプリケーションの構成図}
+    \label{fig:raspimouse_configuration}
+\end{figure}
 \label{chap:implementation}
 本章では，mROS 2-POSIXとROS 2の性能を比較評価するにあたって，mROS 2-POSIXとROS 2に実装するアプリケーションの概要について説明する．
 \section{実装アプリケーションの概要}
 本研究ではROS 2で動作するライントレースノードをmROS 2-POSIXに移植し，mROS 2-POSIXとROS 2の性能を比較評価する．
+比較評価のためのアプリケーションの構成図を図4.1に示す．
 ライントレースノードは，Raspberry Pi Mouseのセンサから取得した値をもとに，ラズパイマウスをライントレースさせるノードである．
 どのように動作するのかというと，まず，Switch2を押すと，ライトセンサの値を床の値だと判断し保存する．
 Switch1を押すと，ライトセンサの値を取得し，トレースするラインのセンサの値を保存する．

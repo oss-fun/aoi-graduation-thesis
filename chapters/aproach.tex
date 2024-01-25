@@ -1,10 +1,17 @@
 \chapter{検討手法}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=10cm]{images/fig3_application_structure.png}
+    \caption{Sphero sprk +とWii Fit Boardを用いたSphero sprk +を制御するアプリケーションの構成図}
+    \label{fig:sphero sprk}
+\end{figure}
 %spheroとraspimouseのwiiboardの手法について話す
 %spheroはcgoの話とライブラリ移植の話
 %raspimouseは開発環境の話と調査が必要な個所についての話．何と何がうまくいって何がうまくいかなかったのかなど．
 この章では，本実装に至らなかったものの検討した手法について述べる．
 \section{Sphero sprk+}
 Sphero sprk+とWii Fit Boardを用いたロボットの動作を制御するアプリケーションの実装をROS 2とmROS 2-POSIXの２つの環境で行うことを検討した．
+図3.1に検討予定だったアプリケーションの構成図を示す．
 Sphero sprk +は，Sphero社が発売した球体のロボットで，ユーザーがスマートフォンから操作することができる．
 また，Wii Fit Boardは，任天堂が発売したWiiの周辺機器で，体重移動を検知することができる．
 この実装を検討し，行った理由は，この実装を行うことで，mROS 2-POSIXとROS 2それぞれの特徴を生かし実験することで，mROS 2-POSIXがユーザーインタラクションにROS 2と違いどのように影響するかを検証することができると考えた．
