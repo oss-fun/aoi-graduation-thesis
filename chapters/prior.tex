@@ -1,4 +1,10 @@
 \chapter{先行研究}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=10cm]{images/fig3_mros2-wasm_configuration.png}
+    \caption{mROS2-wasmの構成図}
+    \label{fig:mros2-wasm_configuration}
+\end{figure}
 柿本らによって，mros2-POSIXをwasm環境で実行するmros2-wasmが提案された．[]
 WebAssembly（Wasm）は，C，C++，C\#，Rustなどの言語で書かれたプログラムをコンパイルのターゲットWeb上でプログラムを高速に実行するために設計された，スタックベースの仮想マシンで実行される仮想命令アーキテクチャである．[4][16]
 サンドボックスな環境でアプリケーションは実行されるため，ハードウェアや言語，プラットフォームに依存せず，ネイティブ日回実行速度でコードを実行できるという性質がある[]
@@ -25,4 +31,14 @@ mROS2-wasmの構成を図3.1に示す．
 timespec構造体は，スレッドの同期処理などに使われるpthread\_cond\_timedwait 関数から使用され，待機時間の長さを指定するために使われる．WAMRではtimespec構造体が使われず，usecondsを用いる必要があった．そのため待機死体時間をマイクロ秒単位に変換し引数としてWAMRのpthread\_cond\_timewaitに渡すことでtimespec構造体を用いずに同様の動作をさせた．
 \\　errnoに関してはシステムが正常に動作している際に使われることがないため，仕様が避けられている．
 \\　スレッド生成時にそのスレッドの属性を設定するのに使われるpthread\_attr\_t構造体は，WAMRではサポートされていない．しかし，pthread\_attr\_tはスレッドを生成する関数のみで使用されており，デフォルトの属性から変更されずにスレッド適用されていたため，削除されている．CMSIS-WASMは上記のように柿本らによって実装された．
-\\　lwIP-WASMは，Socket
+\\　lwIP-WASMは，Socketを用いて通信機能の実装が行われているため，WASIを用いる必要がある．WAMRにはWASIを用いて実装されたSocket APIが提供されているため，それを用いて実装が行われた．
+\\　WAMRのSocket APIでは，setsockopt関数においてIPPROTO\_IPレベル（）で設定できるオプションは5つに限られている．
+\begin{itemize}
+    \item IP\_MULTICAST\_LOOP
+    \item IP\_ADD\_MEMBERSHIP
+    \item IP\_DROP\_MEMBERSHIP
+    \item IP\_TTL
+    \item IP\_MULTICAST\_TTL
+\end{itemize}
+一方mROS 2-POSIXのlwIP-POSIXでは，IP\_MULTICAST\_IF，IP\_ADD\_MEMBERSHIP，IP\_MULTICAST\_TTLが使用されており，IP\_MULTICAST\_IFがWAMRのSocket APIには存在しないためネットワークインターフェースの指定ができないという問題があった．SocketはIP\_MULTICAST\_IFによるネットワークインターフェースの指定がない場合はデフォルトのネットワークインターフェースが指定されるため，IP\_MULTICAST\_IFを設定するsetsockopt関数を削除して実装が行われた．また，マルチキャスト通信の配信範囲を制御するTTLを設定するIP\_MULTICAST\_TTLの指定時に，WAMRのSocket APIではオプションデータの長さが4bytesでないときプログラムが終了してしまう．lwIP-POSIXではこの長さが1bytesで定義されていたため4bytesに変更した．このようにWAMRのSocket APIに合わせた細かい変更を行うことで，lwIP-WASMが実装された．
+\\　システムのビルドは，外部のプロジェクトのビルド・インストールなどを可能にするExternalProjectを用いてmROS 2のディレクトリ外から行うことができる．
