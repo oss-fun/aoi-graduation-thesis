@@ -10,6 +10,20 @@ Wasmの性質からWebブラウザ以外の実行環境として利用する取�
 \end{itemize}
 これらの制約を満たすランタイムとしてWAMR（WebAssembly Micro Run-time）[]がある．
 WAMRは，組込みやIoT，クラウドなど，様々なプラットフォームで動くようにメモリ消費量が小さくなるよう設計された，オープンソースのWasmランタイムである．Wasmプログラムの実行方式としてはWasmバイナリを逐次実行するインタプリタ方式と（Classic），事前にWasmバイナリをネイティブバイナリにコンパイルして実行するAoT（Ahead Of Time），Wasmバイナリをネイティブバイナリにコンパイルして実行するJIT（Just In Time）があり，そのうちAoTとJITではネイティブと同等の実行速度で動作する．またマルチスレッドやスレッド管理を行うpthread API（POSIXスレッドの標準API）をサポートする組込みライブラリやSocket APIをサポートする組込みライブラリも提供されている．\\
-　mROS2-wasmの構成を図3.1に示す．
-Wasmはサンドボックスな環境で実行されるため，OSの機能に依存した層があるmROS 2-POSIXをコンパイルすることができない．
-図2.2で示したとおり，mROS 2-POSIXでOSに依存している層はCMSIS
+　Wasmはサンドボックスな環境で実行されるため，OSの機能に依存した層があるmROS 2-POSIXをそのままではコンパイルすることができない．
+図2.2で示したとおり，mROS 2-POSIXでOSに依存している層はCMSIS-POSIXとlwIP-POSIXである．
+CMSIS-POSIXはmROS 2内部でRTPS通信を行うための機能として，スレッド管理機能，排他制御機能，メッセージキュー管理機能，時間管理機能がpthreadなどを用いて実装されている．lwIPでは，UDPマルチキャストをおこなための実装がSocketやCMSIS-POSIXが提供する機能を用いて実装されている．
+\\　これらの依存を解消するため，CMSIS-POSIXをWasm対応したCMSIS-WASM，lwIP-POSIXをWasm対応したlwIP-WASMを柿本らは実装した．
+mROS2-wasmの構成を図3.1に示す．
+なお，mROS 2はオープンソースソフトウェアであることから上位レイヤに変更が加わっても変更を取り込みやすいよう,既存のビルドシステムに極力手を加えずにシステムを構築されている．
+\\　CMSIS-WASMを実装する機能のうち，排他制御機能，メッセージキュー管理機能はスレッド管理機能に依存している．時間管理機能は手を加えることなくWasmコンパイルが可能であったため，実際に実装されたのはスレッド管理機能である．
+実装に際して，WAMRのpthread APIを用いてスレッド管理機能を実装されているがWAMR pthread ライブラリの既知の問題が障害となった．
+\begin{itemize}
+    \item timespec 構造体をサポートしていない
+    \item wasi-sysrootのerrnoと互換性がない
+    \item pthread_attr_t 構造体をサポートしていない
+\end{itemize}
+timespec構造体は，スレッドの同期処理などに使われるpthread_cond_timedwait 関数から使用され，待機時間の長さを指定するために使われる．WAMRではtimespec構造体が使われず，usecondsを用いる必要があった．そのため待機死体時間をマイクロ秒単位に変換し引数としてWAMRのpthread_cond_timewaitに渡すことでtimespec構造体を用いずに同様の動作をさせた．
+\\　errnoに関してはシステムが正常に動作している際に使われることがないため，仕様が避けられている．
+\\　スレッド生成時にそのスレッドの属性を設定するのに使われるpthread_attr_t構造体は，WAMRではサポートされていない．しかし，pthread_attr_tはスレッドを生成する関数のみで使用されており，デフォルトの属性から変更されずにスレッド適用されていたため，削除されている．CMSIS-WASMは上記のように柿本らによって実装された．
+\\　lwIP-WASMは，Socket
