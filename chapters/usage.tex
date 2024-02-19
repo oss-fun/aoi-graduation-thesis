@@ -56,38 +56,6 @@ Publisher側は自由なタイミングでTopicに向けて通信を行い，非
 この仕様のため，ノード同士の依存が少なくなり，ロボットシステム全体の機能の追加や削除が容易である特性は，柔軟なロボットシステムの構築の一助となる．
 ROS 2でPublisherを作成する際，C++でrclcpp::Nodeクラスの継承からcreate\_publisher()，Pythonでimport rclpy後に.create\_publisher()を行うことでPublisherを作成することができる．
 同様にSubscriberはC++でrclcpp::Subscriptionクラスを使用してcreate\_subscriber(),Pythonでimport rclpy後にcreate\_subscriberを記述することでSubscriberを作成できる．
-\\　ROS 2の通信ミドルウェアであるDDSと通信プロトコルであるRTPSは，通信相手の探索および通信経路の確立を自律的に行う．
-この機能の実現は，RTPSのSPDP（Simple Participant Discover Protocol）とSEDP（Simple Endpoint Discover Protocol）[9]というプロトコルによって行われる．ここで，RTPSでは，ROS 2のノードに相当するものをParticipant（参加者）と呼ぶ．
-通信相手を探索するためには自身の情報を送信するモジュールをWriter，ほかのParticipantから情報を受け取るモジュールをReaderと呼ぶ．
-SPDPは，Participantの情報を送受信するためのプロトコルであり，SEDPは，Topicの情報を送受信するためのプロトコルである．
-この通信のエンドポイントは，Participant同士のパブリッシュ，サブスクライブである．
-\\　RTPSをOSI参照モデルに例えるとtransport層に位置し，UDP/IPの上に実装されている．UDP通信にはパケットの到着に関する保証がないが，ROS 2のDDSではこれを補助するQoS（Quality of Service）制御の機能がある．
-QoS制御は，サブスクライバ，パブリッシャごとに設定でき，厳格な条件であればRELIABLE（信頼性の高い通信）を，緩やかな条件であればBEST EFFORT（ベストエフォート通信）を選択することができる．
-ROS 2のデフォルトDDSであるFastRTPS[10]では，QoS制御の機能が実装されており，各ノードが通信するときのQoS設定はRELIABLEである．
-\subsection{ノードの作り方とパッケージ}
-ROS 2においてノードを作成する場所は決まっており，一般的にはros2\_ワーキングスペース（ws）というディレクトリを作った後，その中にsrcというディレクトリを作成し，その中にノードを作成する．
-srcディレクトリを作成した後，ros2\_wsディレクトリでcolcon buildというコマンドを実行することで，ros2\_wsの中でノードを作成することがきる．
-ROS 2の場合，ノードの集まりのことをパッケージと呼ぶ．
-パッケージはros2 pkg createというコマンドを実行することで作成することができ，srcディレクトリの直下で実行することで，パッケージを作成することができる．
-パッケージを作成する前にそのパッケージの中で使用する言語を決める必要がある．
-ROS 2はC++とPythonの2つの言語をサポートしており，ユーザーの好みに合わせて変更できる．
-\subsection{オーバーレイとアンダーレイ}
-また，ROS 2には重要な概念にアンダーレイとオーバーレイがある．
-アンダーレイは，完成されたパッケージをインストールするワークスペースであり，安定した環境をオーバーレイに提供するためにある．
-オーバーレイは，ユーザー自身で作成したパッケージを扱うワークスペースであり，先ほどのros2\_wsはオーバーレイにあたる．
-ROS 2ではユーザーが作るノードやパッケージをオーバーレイに作成し，必要に応じてアンダーレイのパッケージを参照して使用するのが一般的である．
-このオーバーレイ上でユーザはcolcon buildを実行し，パッケージをビルドする．
-ユーザーはパッケージをビルドした後，すぐに実行することができない．ROS 2ではsourceコマンドを用いてオーバーレイ環境を読み込むことでアンダーレイがオーバーレイより優先されることなく，開発することができる．
-ROS 2においてオーバーレイとアンダーレイは，複雑化するロボットシステムに柔軟性と拡張性をもたらす概念であることがわかる．
-ROS 2のデバック方法として様々なコマンドが用意されており，ros2 topic listというコマンドを実行することで，現在実行されているトピックの一覧を表示することができる．
-ros2 topic echoは，指定したトピックのメッセージを表示することができる．
-また，現在実行されているノードを視覚的に確認できるようにrqt\_graphと呼ばれるものが用意されている．開発者はrqt\_graphを用いて，目に見えないROS 2のノード間の通信を確認することができる．
-こうしたアンダーレイ機能の充実によって，ROS 2はROS 1よりも柔軟性と拡張性を持つことができた．
-\subsection{ROS 2が対応しているDDS}
-ROS 2にはデフォルトでFastRTPSというDDSが実装されている．
-DDSとは，OMG（Object Management Group）が定めたデータ交換のための仕様である．これによって分散型ネットワークでも効率的に通信が可能になっている．
-FastRTPSのほかにも，RTI Connext DDS[11]やeProsima Micro XRCE-DDS[12]というDDSがROS 2に対応している．
-Ubuntu22.04のROS 2 humbleでは，FastRTPSはもちろんのこと，デフォルトでEcripse Cyclone DDS[13]，Gurum DDS[14]，RTI Connext DDSがインストールできる．%リファレンス１[https://docs.ros.org/en/humble/Installation/DDS-Implementations.html#ubuntu-linux-source-install]．
 \subsection{ServiceとAction}
 ROS 2では，Publisherとサブスクライバー以外にもService通信とAction通信がある．
 Service通信は，サーバーとクライアントの２つのノード間でリクエストとレスポンスをやり取りする通信である．
@@ -100,6 +68,32 @@ Service通信は，サーバーとクライアントの２つのノード間で�
 この通信方式によって，長時間のタスクやフィードバックが可能なタスク，中断可能なタスクに適しているため，開発者は柔軟性を保ちながら，ロボットシステムを構築することができる．
 さらに，Action通信は非同期的な通信であるため，Action通信を行うノードは，Action通信が完了するまで他の処理を行うことができる．
 これによって，複雑なタスクを行うノードでもAction通信を用いることで同時に処理することが可能であり，多くのリソースがあるマシンで高度なノードを動作させることができる．
+% \subsection{オーバーレイとアンダーレイ}
+% また，ROS 2には重要な概念にアンダーレイとオーバーレイがある．
+% アンダーレイは，完成されたパッケージをインストールするワークスペースであり，安定した環境をオーバーレイに提供するためにある．
+% オーバーレイは，ユーザー自身で作成したパッケージを扱うワークスペースであり，先ほどのros2\_wsはオーバーレイにあたる．
+% ROS 2ではユーザーが作るノードやパッケージをオーバーレイに作成し，必要に応じてアンダーレイのパッケージを参照して使用するのが一般的である．
+% このオーバーレイ上でユーザはcolcon buildを実行し，パッケージをビルドする．
+% ユーザーはパッケージをビルドした後，すぐに実行することができない．ROS 2ではsourceコマンドを用いてオーバーレイ環境を読み込むことでアンダーレイがオーバーレイより優先されることなく，開発することができる．
+% ROS 2においてオーバーレイとアンダーレイは，複雑化するロボットシステムに柔軟性と拡張性をもたらす概念であることがわかる．
+% ROS 2のデバック方法として様々なコマンドが用意されており，ros2 topic listというコマンドを実行することで，現在実行されているトピックの一覧を表示することができる．
+% ros2 topic echoは，指定したトピックのメッセージを表示することができる．
+% また，現在実行されているノードを視覚的に確認できるようにrqt\_graphと呼ばれるものが用意されている．開発者はrqt\_graphを用いて，目に見えないROS 2のノード間の通信を確認することができる．
+% こうしたアンダーレイ機能の充実によって，ROS 2はROS 1よりも柔軟性と拡張性を持つことができた．
+% \subsection{ROS 2が対応しているDDS}
+% ROS 2の通信ミドルウェアであるDDSと通信プロトコルであるRTPSは，通信相手の探索および通信経路の確立を自律的に行う．
+% この機能の実現は，RTPSのSPDP（Simple Participant Discover Protocol）とSEDP（Simple Endpoint Discover Protocol）[9]というプロトコルによって行われる．ここで，RTPSでは，ROS 2のノードに相当するものをParticipant（参加者）と呼ぶ．
+% 通信相手を探索するためには自身の情報を送信するモジュールをWriter，ほかのParticipantから情報を受け取るモジュールをReaderと呼ぶ．
+% SPDPは，Participantの情報を送受信するためのプロトコルであり，SEDPは，Topicの情報を送受信するためのプロトコルである．
+% この通信のエンドポイントは，Participant同士のPublish，Subscribeである．
+% \\　RTPSをOSI参照モデルに例えるとtransport層に位置し，UDP/IPの上に実装されている．UDP通信にはパケットの到着に関する保証がないが，ROS 2のDDSではこれを補助するQoS（Quality of Service）制御の機能がある．
+% QoS制御は，サブスクライバ，パブリッシャごとに設定でき，厳格な条件であればRELIABLE（信頼性の高い通信）を，緩やかな条件であればBEST EFFORT（ベストエフォート通信）を選択することができる．
+% ROS 2のデフォルトDDSであるFastRTPS[10]では，QoS制御の機能が実装されており，各ノードが通信するときのQoS設定はRELIABLEである．
+% ROS 2にはデフォルトでFastRTPSというDDSが実装されている．
+% DDSとは，OMG（Object Management Group）が定めたデータ交換のための仕様である．これによって分散型ネットワークでも効率的に通信が可能になっている．
+% FastRTPSのほかにも，RTI Connext DDS[11]やeProsima Micro XRCE-DDS[12]というDDSがROS 2に対応している．
+% Ubuntu22.04のROS 2 humbleでは，FastRTPSはもちろんのこと，デフォルトでEcripse Cyclone DDS[13]，Gurum DDS[14]，RTI Connext DDSがインストールできる．%リファレンス１[https://docs.ros.org/en/humble/Installation/DDS-Implementations.html#ubuntu-linux-source-install]．
+
 
 \section{mROS 2}
 \begin{figure}[ht]
@@ -144,18 +138,18 @@ UDPについては組込み向けのCによる軽量実装であるlwIP[18]が�
 RTOSには，TOPPERS/ASP3カーネル[19]が採用されており，高分解能タイマやティックレスの低消費電力な処理遅延機能など，高いリアルタイム性と安全性が求められる軽量な組込みシステムに適した設計がなされている．
 lwipはCMSIS-RTOS APIに依存しているため，それぞれのAPI差分を吸収するラッパが用意されている．
 \subsection{mROS 2の通信機能}
-mROS 2の通信機能は，mROS 2の通信ライブラリにあるinit task（初期化処理）とRTPS/UDPと通信ライブラリを介するwrite task（パブリッシュ処理）とreader task（サブスクライブ処理）の３つのタスクに分けられる．
+mROS 2の通信機能は，mROS 2の通信ライブラリにあるinit task（初期化処理）とRTPS/UDPと通信ライブラリを介するwrite task（Publish処理）とreader task（Subscribe処理）の３つのタスクに分けられる．
 またアプリケーション層にあるuser task（ユーザーアプリケーション）という開発者が実装するタスクがある．
 user taskは，ROS 2のノードに相当している．Pub/Sub通信を行うアプリケーションである．
-mROS 2のAPIを介してパブリッシュやサブスクライブを行うことができる．
+mROS 2のAPIを介してPublishやSubscribeを行うことができる．
 init taskはROS 2としてのノードの情報の初期化を行う．APImros２::init()が呼ばれたときに，対象の組込みデバイスをRTPSのParticipantとして登録する．
-writer taskとreader taskに関しては，パブリッシュおよびサブスクライブに関する処理を担う．これらのタスクはuser taskからの依頼をmROS 2APIを介して受け，RTPSの該当機能を立ち上げる．
-writer taskはパブリッシュの依頼を受けて起動し，reader taskはサブスクライブの依頼を受けて起動する．
+writer taskとreader taskに関しては，PublishおよびSubscribeに関する処理を担う．これらのタスクはuser taskからの依頼をmROS 2APIを介して受け，RTPSの該当機能を立ち上げる．
+writer taskはPublishの依頼を受けて起動し，reader taskはSubscribeの依頼を受けて起動する．
 \subsection{mROS 2-POSIXの内部構成}
 mROS 2がPOSIX[20]に対応したのがmROS 2-POSIXである．
 \\　図2.2は，mROS 2-POSIXのソフトウェア構成を示す．mROS 2-POSIXアプリケーション層は，ユーザが実装するROS 2ノードに相当する．
 つまり，ROS 2におけるオーバーレイに相当する層である．
-mROS 2-POSIX API層および通信ライブラリ層は，メッセージを非同期にパブリッシュやサブスクライブするためのコミュニケーションチャネルであるROS 2のTopicに相当するAPIおよび通信機能を提供する階層である．
+mROS 2-POSIX API層および通信ライブラリ層は，メッセージを非同期にPublishやSubscribeするためのコミュニケーションチャネルであるROS 2のTopicに相当するAPIおよび通信機能を提供する階層である．
 本階層は，ROS 2のネイティブなクライアント通信ライブラリであるrclcppと互換性を保つように設計されている．
 mROS 2通信ライブラリでは，rclcppのうちpub/sub通信の基本的な機能のみ実装されている．
 利用可能な機能は制限されているものの，組込み技術を導入するROS 2開発者は，汎用OS向けのプログラミングスタイルを踏襲しながらC++によってmROS 2のアプリケーションを実装できる．
@@ -169,65 +163,64 @@ UDPについては組込み向けのC実装であるlwIPが採用されている
 POSIXにおいてはタスクに相当する概念はプロセスであり，そこから生成されるスレッドを実行単位として処理が進行している．
 しかし，mROS 2-POSIXは実行単位であるノードにPOSIXのスレッドを対応づけ，組込みマイコンでの通信処理におけるイベント割込みについては，POSIX準拠OSにおけるブロッキングAPIの発行に相当させて処理している．
 これらの方式によって，mROS 2-POSIXはPOSIX準拠OS上で仮想ROS 2ノードとして軽量環境下で実行することができる．
-\subsection{mROS 2-POSIXの動作フロー}
-mROS 2-POSIXの動作は以下のようになっている．
-\begin{itemize}
-    \item netif\_posix\_add(NETIF\_IPADDR, NETIF\_NETMASK)によって，lwIPのネットワークインターフェースを初期化する．
-    \item osKernelStart()によって，RTOSのカーネルを起動する．
-    \item mros2::init(0, NULL)によって，mROS 2-POSIXの初期化を行う．
-    \item mros2::Node::create\_node(ノード名)によって，ノードを生成する．
-\end{itemize}
-mROS 2-POSIXは通常のmROS 2と同様にlwipを利用してUDP stackを実装している．
-異なる点として，mROS 2‐POSIXはPOSIXレイヤが設けられていることが挙げられる．
-このように明確なレイヤを設けたことによって，netif\_posix\_add(NETIF\_IPADDR, NETIF\_NETMASK)のような実装が追加されている．
-引数に現在mros2-posixをビルドしているマシンのIPアドレスとサブネットマスクを設定することによって，lwIPのネットワークインターフェースを初期化する．
-このNETIF\_IPADDRとNETIF\_NETMASKは，mROS 2-POSIXのヘッダファイルであるmros2\_posix\_netif.hに定義されている．
-そのためビルド前にip aなどで自分のIPアドレスを確認し，そのIPアドレスとサブネットマスクを設定する必要がある．
-この設定をを行わないと，ROS 2やほかのmROS 2ノードと通信できなくなり，ros2 topic listなどのデバックコマンドにも表示されない．
-\\　次に，osKernelStart()によって，RTOSのカーネルを起動する．その後，mros2::init(0, NULL)によって，mROS 2-POSIXのノードの初期化を行う．
-mros2::init()はmROS 2-POSIXのノードの初期化，つまり，ROS 2としてノード情報を初期化するということである．これは対象の組込みデバイスをRTPSのParticipantとして登録する．
-このタスクを行った後，mros2::init()は休止状態に移行する．
-\\　そして，mros2::Node::create\_node(ノード名)によって，ノードを生成する．この命令に紐づけられたインスタンス変数を介して，Publisherやサブスクライバーを生成する．
+% \subsection{mROS 2-POSIXの動作フロー}
+% mROS 2-POSIXの動作は以下のようになっている．
+% \begin{itemize}
+%     \item netif\_posix\_add(NETIF\_IPADDR, NETIF\_NETMASK)によって，lwIPのネットワークインターフェースを初期化する．
+%     \item osKernelStart()によって，RTOSのカーネルを起動する．
+%     \item mros2::init(0, NULL)によって，mROS 2-POSIXの初期化を行う．
+%     \item mros2::Node::create\_node(ノード名)によって，ノードを生成する．
+% \end{itemize}
+% mROS 2-POSIXは通常のmROS 2と同様にlwipを利用してUDP stackを実装している．
+% 異なる点として，mROS 2‐POSIXはPOSIXレイヤが設けられていることが挙げられる．
+% このように明確なレイヤを設けたことによって，netif\_posix\_add(NETIF\_IPADDR, NETIF\_NETMASK)のような実装が追加されている．
+% 引数に現在mros2-posixをビルドしているマシンのIPアドレスとサブネットマスクを設定することによって，lwIPのネットワークインターフェースを初期化する．
+% このNETIF\_IPADDRとNETIF\_NETMASKは，mROS 2-POSIXのヘッダファイルであるmros2\_posix\_netif.hに定義されている．
+% そのためビルド前にip aなどで自分のIPアドレスを確認し，そのIPアドレスとサブネットマスクを設定する必要がある．
+% この設定をを行わないと，ROS 2やほかのmROS 2ノードと通信できなくなり，ros2 topic listなどのデバックコマンドにも表示されない．
+% \\　次に，osKernelStart()によって，RTOSのカーネルを起動する．その後，mros2::init(0, NULL)によって，mROS 2-POSIXのノードの初期化を行う．
+% mros2::init()はmROS 2-POSIXのノードの初期化，つまり，ROS 2としてノード情報を初期化するということである．これは対象の組込みデバイスをRTPSのParticipantとして登録する．
+% このタスクを行った後，mros2::init()は休止状態に移行する．
+% \\　そして，mros2::Node::create\_node(ノード名)によって，ノードを生成する．この命令に紐づけられたインスタンス変数を介して，Publisherやサブスクライバーを生成する．
 
-\subsection{mROS 2-POSIXのパブリッシュ処理}
-mROS 2-POSIXにおいてパブリッシュ処理はmROS 2とほとんど変更がない．
-まず，mros2::Node::create\_publisher()によってmROS 2ノードをPublisherとして登録する．
-mros2::Node::create\_publisherは関数テンプレートとして実装されており，第一引数にトピック名，第二引数にパブリッシュするメッセージのキューのサイズを設定する．
-例として，mros2::Node::create\_publisher＜型名＞(トピック名,10)という形で記述する．
-<型>の中に入るのは，パブリッシュするメッセージの型である．ROS 2同様に様々な種類の型を設定でき，ユーザーが自由に定義することができる．
-同様に"トピック名"にはトピック名が，10はパブリッシュするメッセージのキューサイズ（履歴の長さ）が入る．
-定義されたpublisherがどのようにパブリッシュされるのか以下にフローを示す．
-\begin{itemize}
-    \item mros2::Publisher.publish()を呼び出す．引数にはメッセージ情報が格納されたオブジェクトのポインタを渡す．
-    \item mROS 2-POSIXの通信ライブラリ内でメッセージのシリアライズを行い，RTPSに則った形式に変換する．
-    \item embeddedRTPSの提供する機能によってUDPパケットを作成し，タスク間通信でmROS 2-POSIXのParticipantのwriterにパブリッシュ処理を依頼する
-    \item writerのタスクが実行され，RTPSのSPDPによって，Publisher情報を送信する．
-\end{itemize}
-mROS 2‐POSIXのパブリッシュ処理は，mROS 2と同様にUDPパケットを作成し，RTPSのSPDPによって，Publisher情報を送信する．
-mROS 2通信ライブラリの通信処理効率化のためにwriter taskは，CPUとネットワーク通信を平行に行うことができる．
-このため，embeddedRTPSやlwIPにおけるメッセージ，UDPパケットの送信処理に関して，user taskから分離してwriter taskで実行されるようになっている．
-\subsection{mROS 2-POSIXのサブスクライブ処理}
-mROS 2-POSIXにおいてサブスクライブ処理もパブリッシュ処理と同様にほとんど変わらない．
-mros2::Node::create\_subscription()によってmROS 2ノードをサブスクライバーとして登録し，メッセージをサブスクライブできるようにする．
-サブスクリプションも同様に関数テンプレートとして実装されており，テンプレートの仮引数にはメッセージ型，引数にはトピック名とRTPSにおけるQoSのキャッシュに加えて，サブスクライブ時に呼び出されるコールバック関数を指定する．
-例として，mros2::Node::create\_subscription＜型名＞(トピック名,10,コールバック関数)という形で記述する．
-これによってembeddedRTPSに紐づけられたため，サブスクライブ機能を利用できる．
-定義されたsubscriberがどのようにサブスクライブされるのか以下にフローを示す．
-\begin{itemize}
-    \item ノードのParticipantのreaderがUDPパケットを受信する．
-    \item 初期化タスク時にParticipant情報として登録されていたembeddedRTPS内のコールバック関数が実行され，RTPSに則った形式に変換する
-    \item mROS 2通信ライブラリ内でRTPSパケットのデシリアライズを行い，メッセージに変換する．
-    \item タスク間の通信によって登録されていたコールバック関数およびサブスクライブされたメッセージのオブジェクトポインタを渡す．
-    \item メッセージのオブジェクトのポインタを引数としてコールバック関数を実行する．
-\end{itemize}
-メッセージのPub/Sub通信は非同期的に行われるため，reader taskがサブスクライブを待ち受けるにはCPU使用権を専有する必要があり，
-メッセージサブスクライブに対するコールバック関数を実行する必要がある．その為，この処理時間が長くなる場合に，次のメッセージのサブスクライブを待てないという問題が発生する．
-UDPパケットの到着を高い優先度で定期的に監視する役目をreader taskが行うことで到着時にメッセージのサブスクライブ処理を行うようにしている．
-\subsection{mROS 2-POSIXのメッセージ生成}
-ROS 2では様々なメッセージ型を定義して通信することができるが，mROS 2-POSIXもオリジナルのメッセージファイルを用意してそのメッセージ型で通信することができる．
-そもそもmROS 2にはデフォルトでsensor\_msg/msg/image.hpp,std\_msgs/msg/bool.hpp，byte.hpp，char.hpp，float32.hpp，float64.hpp，header.hpp，int16.hpp，int32.hpp，int64.hpp，int8.hpp，string.hpp，uint16.hpp，uint32.hpp，uint64.hpp，uint8.hppというメッセージ型が用意されている．
-これらのメッセージ型は，mROS 2-POSIXでも利用することができるが，ほかのメッセージ型もmros2/mros2\_header\_generatorの.pyファイルを用いて生成することができる．
-生成したいメッセージファイルはcustom\_msgs/の中に入れないと生成できない．また階層構造はかならず○○\_msgs/msg/○○.msgという形にしないと生成できない．
-またメッセージファイルのなかにコメント文があるとコメントも一緒に取り込んでsplitするので注意する必要がある．
-やり方はmros2-posix/workspaceに移動してpython3 ../mros2/mros2\_header\_generator.py custom\_msgs/msgs/xxx.msgという形で記述する．
-いろいろ制限が多いものの，やり方さえ覚えてしまえば，既存のROS 2と同様にメッセージファイルを生成することができる．
+% \subsection{mROS 2-POSIXのPublish処理}
+% mROS 2-POSIXにおいてPublish処理はmROS 2とほとんど変更がない．
+% まず，mros2::Node::create\_publisher()によってmROS 2ノードをPublisherとして登録する．
+% mros2::Node::create\_publisherは関数テンプレートとして実装されており，第一引数にトピック名，第二引数にPublishするメッセージのキューのサイズを設定する．
+% 例として，mros2::Node::create\_publisher＜型名＞(トピック名,10)という形で記述する．
+% <型>の中に入るのは，Publishするメッセージの型である．ROS 2同様に様々な種類の型を設定でき，ユーザーが自由に定義することができる．
+% 同様に"トピック名"にはトピック名が，10はPublishするメッセージのキューサイズ（履歴の長さ）が入る．
+% 定義されたpublisherがどのようにPublishされるのか以下にフローを示す．
+% \begin{itemize}
+%     \item mros2::Publisher.publish()を呼び出す．引数にはメッセージ情報が格納されたオブジェクトのポインタを渡す．
+%     \item mROS 2-POSIXの通信ライブラリ内でメッセージのシリアライズを行い，RTPSに則った形式に変換する．
+%     \item embeddedRTPSの提供する機能によってUDPパケットを作成し，タスク間通信でmROS 2-POSIXのParticipantのwriterにPublish処理を依頼する
+%     \item writerのタスクが実行され，RTPSのSPDPによって，Publisher情報を送信する．
+% \end{itemize}
+% mROS 2‐POSIXのPublish処理は，mROS 2と同様にUDPパケットを作成し，RTPSのSPDPによって，Publisher情報を送信する．
+% mROS 2通信ライブラリの通信処理効率化のためにwriter taskは，CPUとネットワーク通信を平行に行うことができる．
+% このため，embeddedRTPSやlwIPにおけるメッセージ，UDPパケットの送信処理に関して，user taskから分離してwriter taskで実行されるようになっている．
+% \subsection{mROS 2-POSIXのSubscribe処理}
+% mROS 2-POSIXにおいてSubscribe処理もPublish処理と同様にほとんど変わらない．
+% mros2::Node::create\_subscription()によってmROS 2ノードをサブスクライバーとして登録し，メッセージをSubscribeできるようにする．
+% サブスクリプションも同様に関数テンプレートとして実装されており，テンプレートの仮引数にはメッセージ型，引数にはトピック名とRTPSにおけるQoSのキャッシュに加えて，Subscribe時に呼び出されるコールバック関数を指定する．
+% 例として，mros2::Node::create\_subscription＜型名＞(トピック名,10,コールバック関数)という形で記述する．
+% これによってembeddedRTPSに紐づけられたため，Subscribe機能を利用できる．
+% 定義されたsubscriberがどのようにSubscribeされるのか以下にフローを示す．
+% \begin{itemize}
+%     \item ノードのParticipantのreaderがUDPパケットを受信する．
+%     \item 初期化タスク時にParticipant情報として登録されていたembeddedRTPS内のコールバック関数が実行され，RTPSに則った形式に変換する
+%     \item mROS 2通信ライブラリ内でRTPSパケットのデシリアライズを行い，メッセージに変換する．
+%     \item タスク間の通信によって登録されていたコールバック関数およびSubscribeされたメッセージのオブジェクトポインタを渡す．
+%     \item メッセージのオブジェクトのポインタを引数としてコールバック関数を実行する．
+% \end{itemize}
+% メッセージのPub/Sub通信は非同期的に行われるため，reader taskがSubscribeを待ち受けるにはCPU使用権を専有する必要があり，
+% メッセージSubscribeに対するコールバック関数を実行する必要がある．その為，この処理時間が長くなる場合に，次のメッセージのSubscribeを待てないという問題が発生する．
+% UDPパケットの到着を高い優先度で定期的に監視する役目をreader taskが行うことで到着時にメッセージのSubscribe処理を行うようにしている．
+% \subsection{mROS 2-POSIXのメッセージ生成}
+% ROS 2では様々なメッセージ型を定義して通信することができるが，mROS 2-POSIXもオリジナルのメッセージファイルを用意してそのメッセージ型で通信することができる．
+% そもそもmROS 2にはデフォルトでsensor\_msg/msg/image.hpp,std\_msgs/msg/bool.hpp，byte.hpp，char.hpp，float32.hpp，float64.hpp，header.hpp，int16.hpp，int32.hpp，int64.hpp，int8.hpp，string.hpp，uint16.hpp，uint32.hpp，uint64.hpp，uint8.hppというメッセージ型が用意されている．
+% これらのメッセージ型は，mROS 2-POSIXでも利用することができるが，ほかのメッセージ型もmros2/mros2\_header\_generatorの.pyファイルを用いて生成することができる．
+% 生成したいメッセージファイルはcustom\_msgs/の中に入れないと生成できない．また階層構造はかならず○○\_msgs/msg/○○.msgという形にしないと生成できない．
+% またメッセージファイルのなかにコメント文があるとコメントも一緒に取り込んでsplitするので注意する必要がある．
+
