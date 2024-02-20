@@ -17,6 +17,31 @@
   \end{table}
 本研究でmROS 2-POSIX，mROS 2-Wasm，ROS 2の性能を比較評価するために，それぞれの環境に実装したライントレースノードをラズパイマウスにジョイントしているRassberry Pi 3B+上で動作させ，制御ノードとライントレースノードの通信時間とメモリ消費量を比較する実験を実施した．
 \\　実験の実行環境を表6.1に示す．なお，第2章で述べた通り，ネイティブROS 2のランタイムディストリビューションは最新版であるhumbleを採用した．
-\\　通信時間の計測は，2つのノード間でPub/Sub通信にかかる時間をmROS 2-POSIX，ROS 2間でstd::chrono::high\_resolution\_clockを用いて計測し，mROS 2-Wasm，ROS 2間でLinux標準のclock_gettime()を用いた．mROS 2-Wasmでstd::chrono::high\_resolution\_clockを用いると，実行時に取得できる時間がROS 2側と桁が異なり，比較が困難であったためclock_gettime()を使用した．原因については，現在調査中である．std::chrono::
+\\　通信時間の計測は，2つのノード間でPub/Sub通信にかかる時間をmROS 2-POSIX，ROS 2間でstd::chrono::high\_resolution\_clockを用いて計測し，mROS 2-Wasm，ROS 2間でLinux標準のclock_gettime()を用いた．
+mROS 2-Wasmでstd::chrono::high\_resolution\_clockを用いると，実行時に取得できる時間がROS 2側のstd::chrono::high\_resolution\_clockと数値が大きく異なり，比較が困難であったためclock_gettime()を使用した．
+時間を計測するトピックは，/light\_sensorsと/cmd\_velである．
+このトピックはライントレースする際に使用する主なトピックであり，第4章で述べた通り，/light\_sensorsはライトセンサの値を，/cmd\_velはラズパイマウスのモーターを制御するためのトピックである．
+/light\_sensorsはInt16型が4つ格納されている配列であり，/cmd\_velはgeometry\_msgs/Twist型で，float64型が6つ格納されている配列である．
+この2つのトピックのPublishした現在時刻，Subscribeした現在時刻を取得し，その差分を通信時間とした．
+評価にあたって，通信時間の箱ひげ図，平均値，最大値，最小値，標準偏差を計算した．
+/light\_sensorsと/cmd\_velのPub/Subの関係は第5章で述べた通り，/light\_sensorsは制御ノードからPublishされるトピックであり，mROS 2-POSIX，mROS 2-WasmはSubscribeするトピックである．
+/cmd\_velはmROS 2-POSIX，mROS 2-WasmがPublishするトピックであり，制御ノードがSubscribeするトピックである．
+\\　メモリ消費量の計測は，mROS 2-POSIX，mROS 2-Wasm，ROS 2の各環境でのライントレースノードに対して，実行しているランタイムのプロセスIDを取得し，そのプロセスに割り当てられているRSSを計測した．
+各環境で同様の計測を行い，RSSは時間によって変化しなかった．
+このRSSを用いて，グラフを作成した．
+\section{結果}
+実験結果を図6.1から図6.3および表6.2，表6.3に示す．
+\\　図6.1では各環境ごとにトピック/light\_sensorsのPublishした現在時刻とSubscribeした現在時間の差を計算し，箱ひげ図として通信時間のばらつきを示している．
+ROS 2とmROS 2-POSIXの通信時間のばらつきは比較的同等であるが，mROS 2-Wasmを見ると，非常に大きなばらつきがあることがわかる．
+\\　表6.2は，トピック/light\_sensorsに対して各環境ごとに通信時間の平均値，最大値，最小値，標準偏差を示している．
+表6.2を見ると，一番小さい平均値を記録したのがmROS 2-POSIXであり，次いでROS 2，mROS 2-Wasmの順である．
+mROS 2-POSIXとROS 2の平均時間の差は約77μsecであり，mROS 2-POSIXとROS 2の通信時間の平均がおおよそ同程度，またはmROS 2-POSIXのPub/Sub通信の方がROS 2よりも若干高速であることがわかる．
+標準偏差は測定値の分布が平均値のまわりにどの程度集まっているか示す指標で小さい順に，mROS 2-POSIX，ROS 2，mROS 2-Wasmの順である．
+mROS 2-POSIXとROS 2の差はほとんどなく，若干ROS 2のばらつきが大きいが，ほとんど同程度である．
+mROS 2-Wasmの通信時間の平均がmROS 2-POSIXとROS 2はおおよそ同等であることのに比べて，およそ3倍になっており，標準偏差は，mROS 2-POSIXとROS 2がおおよそ同等であるのに対し，mROS 2-Wasmはおよそ5倍の値になっている．
+\\　図6.2は，図6.1と同様に各環境ごとの/cmd\_vel
+同様に，図6.2では/cmd\_velのPublishした現在時刻とSubscribeした現在時刻の差を計算し，通信時間のばらつきを示している．
+同様に，表6.3は，トピック/cmd\_velに対して各環境ごとに通信時間の平均値，最大値，最小値，標準偏差を示している．
+図6.3は，
 
 

@@ -32,7 +32,7 @@ timespec構造体は，スレッドの同期処理などに使われるpthread\_
 \\　errnoに関してはシステムが正常に動作している際に使われることがないため，仕様が避けられている．
 \\　スレッド生成時にそのスレッドの属性を設定するのに使われるpthread\_attr\_t構造体は，WAMRではサポートされていない．しかし，pthread\_attr\_tはスレッドを生成する関数のみで使用されており，デフォルトの属性から変更されずにスレッド適用されていたため，削除されている．CMSIS-WASMは上記のように柿本らによって実装された．
 \\　lwIP-WASMは，Socketを用いて通信機能の実装が行われているため，WASIを用いる必要がある．WAMRにはWASIを用いて実装されたSocket APIが提供されているため，それを用いて実装が行われた．
-\\　WAMRのSocket APIでは，setsockopt関数においてIPPROTO\_IPレベル（）で設定できるオプションは5つに限られている．
+\\　WAMRのSocket APIでは，setsockopt関数においてIPPROTO\_IPレベル()で設定できるオプションは5つに限られている．
 \begin{itemize}
     \item IP\_MULTICAST\_LOOP
     \item IP\_ADD\_MEMBERSHIP
@@ -40,5 +40,14 @@ timespec構造体は，スレッドの同期処理などに使われるpthread\_
     \item IP\_TTL
     \item IP\_MULTICAST\_TTL
 \end{itemize}
-一方mROS 2-POSIXのlwIP-POSIXでは，IP\_MULTICAST\_IF，IP\_ADD\_MEMBERSHIP，IP\_MULTICAST\_TTLが使用されており，IP\_MULTICAST\_IFがWAMRのSocket APIには存在しないためネットワークインターフェースの指定ができないという問題があった．SocketはIP\_MULTICAST\_IFによるネットワークインターフェースの指定がない場合はデフォルトのネットワークインターフェースが指定されるため，IP\_MULTICAST\_IFを設定するsetsockopt関数を削除して実装が行われた．また，マルチキャスト通信の配信範囲を制御するTTLを設定するIP\_MULTICAST\_TTLの指定時に，WAMRのSocket APIではオプションデータの長さが4bytesでないときプログラムが終了してしまう．lwIP-POSIXではこの長さが1bytesで定義されていたため4bytesに変更した．このようにWAMRのSocket APIに合わせた細かい変更を行うことで，lwIP-WASMが実装された．
-\\　システムのビルドは，外部のプロジェクトのビルド・インストールなどを可能にするExternalProjectを用いてmROS 2のディレクトリ外から行うことができる．
+一方，mROS 2-POSIXのlwIP-POSIXでは，IP\_MULTICAST\_IF，IP\_ADD\_MEMBERSHIP，IP\_MULTICAST\_TTLが使用されており，IP\_MULTICAST\_IFがWAMRのSocket APIには存在しないためネットワークインターフェースの指定ができないという問題があった．SocketはIP\_MULTICAST\_IFによるネットワークインターフェースの指定がない場合はデフォルトのネットワークインターフェースが指定されるため，IP\_MULTICAST\_IFを設定するsetsockopt関数を削除して実装が行われた．また，マルチキャスト通信の配信範囲を制御するTTLを設定するIP\_MULTICAST\_TTLの指定時に，WAMRのSocket APIではオプションデータの長さが4bytesでないときプログラムが終了してしまう．lwIP-POSIXではこの長さが1bytesで定義されていたため4bytesに変更した．このようにWAMRのSocket APIに合わせた細かい変更を行うことで，lwIP-WASMが実装された．
+システムのビルドは，外部のプロジェクトのビルド・インストールなどを可能にするExternalProjectを用いてmROS 2のディレクトリ外から行うことができる．
+\\　以上の実装により，実行中のmROS 2-POSIXをWasm化することができた．
+\\　mROS 2-Wasmは通信時間とメモリサイズと計算処理性能の評価が行われた．
+\\　計算処理性能の評価では，ノード内で擬似作業として1以上の整数を順に素数判定し，1024までの素数を見つける処理を行う実装をし，その時間を計測，評価した．
+コンパイル方式はAoTとClassic インタプリタとFast インタプリタを使って計測した．
+\\　通信時間ではmROS 2-WasmとmROS 2を比較評価した．
+計測方法はクラウド想定のデバイスから文字列データを送信し，ロボット想定のデバイスからデータを受けとると，そのままデータを返し，クラウド想定のデバイスが受け取るまでの時間，RTT（Round Trip Time）を計測している．mROS 2-Wasmのコンパイル方式はAoTとJITを使わずClassicインタプリタでコンパイルしたバイナリファイルを使って計測した．
+\\　メモリサイズの評価では，mROS 2-POSIXとmROS 2-WasmとmROS 2-POSIXを比較評価している．この計測では，計算処理性能で実装された処理のプロセスIDのRSS（Resident Set Size）とVSS（Virtual Set Size）を取得し評価をした．
+今後の課題として，mROS 2-Wasmに実行状態の保存，復元機構を実装することが残った．
+%柿本さんの研究の評価方法を載せたい通信性能でAOTとJITは動作しなかったため，Classicでの評価が行われた．ということを言わないといけない

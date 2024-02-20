@@ -56,7 +56,7 @@ Publisher側は自由なタイミングでTopicに向けて通信を行い，非
 この仕様のため，ノード同士の依存が少なくなり，ロボットシステム全体の機能の追加や削除が容易である特性は，柔軟なロボットシステムの構築の一助となる．
 ROS 2でPublisherを作成する際，C++でrclcpp::Nodeクラスの継承からcreate\_publisher()，Pythonでimport rclpy後に.create\_publisher()を行うことでPublisherを作成することができる．
 同様にSubscriberはC++でrclcpp::Subscriptionクラスを使用してcreate\_subscriber(),Pythonでimport rclpy後にcreate\_subscriberを記述することでSubscriberを作成できる．
-\subsection{ServiceとAction}
+\subsection{Service通信とAction通信}
 ROS 2では，Publisherとサブスクライバー以外にもService通信とAction通信がある．
 Service通信は，サーバーとクライアントの２つのノード間でリクエストとレスポンスをやり取りする通信である．
 これは既存のクライアント・サーバーモデル[15]によく似ており，Subscribeするのではなく，ノードがメッセージの値を欲しいタイミングでリクエストする仕組みになっている．
@@ -68,33 +68,6 @@ Service通信は，サーバーとクライアントの２つのノード間で�
 この通信方式によって，長時間のタスクやフィードバックが可能なタスク，中断可能なタスクに適しているため，開発者は柔軟性を保ちながら，ロボットシステムを構築することができる．
 さらに，Action通信は非同期的な通信であるため，Action通信を行うノードは，Action通信が完了するまで他の処理を行うことができる．
 これによって，複雑なタスクを行うノードでもAction通信を用いることで同時に処理することが可能であり，多くのリソースがあるマシンで高度なノードを動作させることができる．
-% \subsection{オーバーレイとアンダーレイ}
-% また，ROS 2には重要な概念にアンダーレイとオーバーレイがある．
-% アンダーレイは，完成されたパッケージをインストールするワークスペースであり，安定した環境をオーバーレイに提供するためにある．
-% オーバーレイは，ユーザー自身で作成したパッケージを扱うワークスペースであり，先ほどのros2\_wsはオーバーレイにあたる．
-% ROS 2ではユーザーが作るノードやパッケージをオーバーレイに作成し，必要に応じてアンダーレイのパッケージを参照して使用するのが一般的である．
-% このオーバーレイ上でユーザはcolcon buildを実行し，パッケージをビルドする．
-% ユーザーはパッケージをビルドした後，すぐに実行することができない．ROS 2ではsourceコマンドを用いてオーバーレイ環境を読み込むことでアンダーレイがオーバーレイより優先されることなく，開発することができる．
-% ROS 2においてオーバーレイとアンダーレイは，複雑化するロボットシステムに柔軟性と拡張性をもたらす概念であることがわかる．
-% ROS 2のデバック方法として様々なコマンドが用意されており，ros2 topic listというコマンドを実行することで，現在実行されているトピックの一覧を表示することができる．
-% ros2 topic echoは，指定したトピックのメッセージを表示することができる．
-% また，現在実行されているノードを視覚的に確認できるようにrqt\_graphと呼ばれるものが用意されている．開発者はrqt\_graphを用いて，目に見えないROS 2のノード間の通信を確認することができる．
-% こうしたアンダーレイ機能の充実によって，ROS 2はROS 1よりも柔軟性と拡張性を持つことができた．
-% \subsection{ROS 2が対応しているDDS}
-% ROS 2の通信ミドルウェアであるDDSと通信プロトコルであるRTPSは，通信相手の探索および通信経路の確立を自律的に行う．
-% この機能の実現は，RTPSのSPDP（Simple Participant Discover Protocol）とSEDP（Simple Endpoint Discover Protocol）[9]というプロトコルによって行われる．ここで，RTPSでは，ROS 2のノードに相当するものをParticipant（参加者）と呼ぶ．
-% 通信相手を探索するためには自身の情報を送信するモジュールをWriter，ほかのParticipantから情報を受け取るモジュールをReaderと呼ぶ．
-% SPDPは，Participantの情報を送受信するためのプロトコルであり，SEDPは，Topicの情報を送受信するためのプロトコルである．
-% この通信のエンドポイントは，Participant同士のPublish，Subscribeである．
-% \\　RTPSをOSI参照モデルに例えるとtransport層に位置し，UDP/IPの上に実装されている．UDP通信にはパケットの到着に関する保証がないが，ROS 2のDDSではこれを補助するQoS（Quality of Service）制御の機能がある．
-% QoS制御は，サブスクライバ，パブリッシャごとに設定でき，厳格な条件であればRELIABLE（信頼性の高い通信）を，緩やかな条件であればBEST EFFORT（ベストエフォート通信）を選択することができる．
-% ROS 2のデフォルトDDSであるFastRTPS[10]では，QoS制御の機能が実装されており，各ノードが通信するときのQoS設定はRELIABLEである．
-% ROS 2にはデフォルトでFastRTPSというDDSが実装されている．
-% DDSとは，OMG（Object Management Group）が定めたデータ交換のための仕様である．これによって分散型ネットワークでも効率的に通信が可能になっている．
-% FastRTPSのほかにも，RTI Connext DDS[11]やeProsima Micro XRCE-DDS[12]というDDSがROS 2に対応している．
-% Ubuntu22.04のROS 2 humbleでは，FastRTPSはもちろんのこと，デフォルトでEcripse Cyclone DDS[13]，Gurum DDS[14]，RTI Connext DDSがインストールできる．%リファレンス１[https://docs.ros.org/en/humble/Installation/DDS-Implementations.html#ubuntu-linux-source-install]．
-
-
 \section{mROS 2}
 \begin{figure}[ht]
     \centering
@@ -163,6 +136,34 @@ UDPについては組込み向けのC実装であるlwIPが採用されている
 POSIXにおいてはタスクに相当する概念はプロセスであり，そこから生成されるスレッドを実行単位として処理が進行している．
 しかし，mROS 2-POSIXは実行単位であるノードにPOSIXのスレッドを対応づけ，組込みマイコンでの通信処理におけるイベント割込みについては，POSIX準拠OSにおけるブロッキングAPIの発行に相当させて処理している．
 これらの方式によって，mROS 2-POSIXはPOSIX準拠OS上で仮想ROS 2ノードとして軽量環境下で実行することができる．
+% \subsection{オーバーレイとアンダーレイ}
+% また，ROS 2には重要な概念にアンダーレイとオーバーレイがある．
+% アンダーレイは，完成されたパッケージをインストールするワークスペースであり，安定した環境をオーバーレイに提供するためにある．
+% オーバーレイは，ユーザー自身で作成したパッケージを扱うワークスペースであり，先ほどのros2\_wsはオーバーレイにあたる．
+% ROS 2ではユーザーが作るノードやパッケージをオーバーレイに作成し，必要に応じてアンダーレイのパッケージを参照して使用するのが一般的である．
+% このオーバーレイ上でユーザはcolcon buildを実行し，パッケージをビルドする．
+% ユーザーはパッケージをビルドした後，すぐに実行することができない．ROS 2ではsourceコマンドを用いてオーバーレイ環境を読み込むことでアンダーレイがオーバーレイより優先されることなく，開発することができる．
+% ROS 2においてオーバーレイとアンダーレイは，複雑化するロボットシステムに柔軟性と拡張性をもたらす概念であることがわかる．
+% ROS 2のデバック方法として様々なコマンドが用意されており，ros2 topic listというコマンドを実行することで，現在実行されているトピックの一覧を表示することができる．
+% ros2 topic echoは，指定したトピックのメッセージを表示することができる．
+% また，現在実行されているノードを視覚的に確認できるようにrqt\_graphと呼ばれるものが用意されている．開発者はrqt\_graphを用いて，目に見えないROS 2のノード間の通信を確認することができる．
+% こうしたアンダーレイ機能の充実によって，ROS 2はROS 1よりも柔軟性と拡張性を持つことができた．
+% \subsection{ROS 2が対応しているDDS}
+% ROS 2の通信ミドルウェアであるDDSと通信プロトコルであるRTPSは，通信相手の探索および通信経路の確立を自律的に行う．
+% この機能の実現は，RTPSのSPDP（Simple Participant Discover Protocol）とSEDP（Simple Endpoint Discover Protocol）[9]というプロトコルによって行われる．ここで，RTPSでは，ROS 2のノードに相当するものをParticipant（参加者）と呼ぶ．
+% 通信相手を探索するためには自身の情報を送信するモジュールをWriter，ほかのParticipantから情報を受け取るモジュールをReaderと呼ぶ．
+% SPDPは，Participantの情報を送受信するためのプロトコルであり，SEDPは，Topicの情報を送受信するためのプロトコルである．
+% この通信のエンドポイントは，Participant同士のPublish，Subscribeである．
+% \\　RTPSをOSI参照モデルに例えるとtransport層に位置し，UDP/IPの上に実装されている．UDP通信にはパケットの到着に関する保証がないが，ROS 2のDDSではこれを補助するQoS（Quality of Service）制御の機能がある．
+% QoS制御は，サブスクライバ，パブリッシャごとに設定でき，厳格な条件であればRELIABLE（信頼性の高い通信）を，緩やかな条件であればBEST EFFORT（ベストエフォート通信）を選択することができる．
+% ROS 2のデフォルトDDSであるFastRTPS[10]では，QoS制御の機能が実装されており，各ノードが通信するときのQoS設定はRELIABLEである．
+% ROS 2にはデフォルトでFastRTPSというDDSが実装されている．
+% DDSとは，OMG（Object Management Group）が定めたデータ交換のための仕様である．これによって分散型ネットワークでも効率的に通信が可能になっている．
+% FastRTPSのほかにも，RTI Connext DDS[11]やeProsima Micro XRCE-DDS[12]というDDSがROS 2に対応している．
+% Ubuntu22.04のROS 2 humbleでは，FastRTPSはもちろんのこと，デフォルトでEcripse Cyclone DDS[13]，Gurum DDS[14]，RTI Connext DDSがインストールできる．%リファレンス１[https://docs.ros.org/en/humble/Installation/DDS-Implementations.html#ubuntu-linux-source-install]．
+
+
+
 % \subsection{mROS 2-POSIXの動作フロー}
 % mROS 2-POSIXの動作は以下のようになっている．
 % \begin{itemize}
