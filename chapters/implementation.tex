@@ -2,15 +2,36 @@
 %ラズパイマウスのfollowerノードについての実装を書く．今はspheroとラズパイマウスのwiibordを本実装として話しているため改変が必要．aproachに持っていく．
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=10cm]{images/fig4_raspimouse_configuration.png}
+    \includegraphics[width=15cm]{images/fig4_raspimouse_configuration.png}
     \caption{実装アプリケーション構成1}
     \label{fig:mros2_ros2_raspimouse_configuration}
 \end{figure}
 \begin{figure}[h]
     \centering
-    \includegraphics[width=10cm]{images/fig4_pubsub_configuration.png}
+    \includegraphics[width=15cm]{images/fig4_pubsub_configuration.png}
     \caption{実装アプリケーションのPub/Sub通信構成}
     \label{fig:mros2_ros2_pubsub_configuration}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=15cm]{images/fig5_moveflow.png}
+    \caption{実装アプリケーションの動作フロー}
+    \label{fig:moveflow}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=15cm]{images/fig4_mros2bug.png}
+    \caption{mROS 2-POSIXのバグ}
+    \label{fig:mros2bug}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=15cm]{images/fig4_mros2bug_fix.png}
+    \caption{mROS 2-POSIXのバグ fix}
+    \label{fig:mros2bug-fix}
 \end{figure}
 \label{chap:implementation}
 %書くこと
@@ -41,8 +62,8 @@
 /ledsはライントレースノードがPublishするトピックであり，ラズパイマウスのLEDを制御するためのトピックである．
 %実装したことを証明したかったらコード追加する？？？
 %これらのトピックを介してPub/Sub通信を行い実際に動作する際のフローを図4.3に示す．
-こららのトピックを介してPub/Sub通信を行えるよう，Pythonで記述されたライントレースノードをC++に書き換え，mROS 2-POSIXとmROS 2-wasmに移植した．
-また，動作フローなどで通信時間に影響がでないように，ROS 2とmROS 2-POSIX，mROS 2-wasmの動作フローを統一した．
+これらのトピックを介してPub/Sub通信を行えるよう，Pythonで記述されたライントレースノードをC++に書き換え，mROS 2-POSIXとmROS 2-wasmに移植した．
+また，動作フローなどで通信時間に影響がでないように，ROS 2とmROS 2-POSIX，mROS 2-wasmの動作フローを統一した．動作フローは図\ref{fig:moveflow}に示す．
 % したがって，図4.3のフローはROS 2とmROS 2-POSIX，mROS 2-wasmの動作フローを示している．
 % まず，Switchを介してライトセンサの値を取得する動作を行う．
 % プログラム上で保持するライトセンサの値はラインの外側の値と，ラインの内側の値の2つである．
@@ -67,19 +88,6 @@
 % mROS 2-POSIXの実装は，ROS 2の実装をmROS 2-POSIXに移植した．
 % 移植にあたって，パブリッシュやサブスクライブなどのAPIをmROS 2-POSIXのAPIに変更した．
 \section{実装アプリケーションの問題と解決策}
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=10cm]{images/fig4_mros2bug.png}
-    \caption{mROS 2-POSIXのバグ}
-    \label{fig:mros2bug}
-\end{figure}
-
-\begin{figure}[h]
-    \centering
-    \includegraphics[width=10cm]{images/fig4_mros2bug_fix.png}
-    \caption{mROS 2-POSIXのバグ fix}
-    \label{fig:mros2bug-fix}
-\end{figure}
 ROS 2で実装されているノードをmROS 2-posixに実装する際に，mROS 2-posix固有の様々な問題に遭遇した．
 以下にその問題を述べる．
 \begin{itemize}
@@ -108,6 +116,9 @@ mROS 2-POSIXのDDS[]であるembeddedRTPS[]はQoSの設定にReliableとBEST\_Ef
 2章で説明した通り，Service通信はROS 2の通信方法の1つであり，クライアント・サーバーモデルに近い通信方法である．
 ROS 2のライントレースノードの実装では，このサービス通信を用いてラズパイマウスのモーターのon/offを操作しているが，mROS 2-posixにはService通信の実装がされておらず，そのまま移植することはできない．
 本実装では，mROS 2-POSIXの実装部分でモーターのon/offの処理を削除し，ノードを立ち上げた後，ROS 2の制御ノードに対して端末上からros2 service callを使用することで，モーター電源のon/offを操作した．
+\\　本実装では同じメッセージ型を使用することはなかったが，既存のmROS 2-POSIXで同じメッセージ型を使用するPublisherもしくはSubscriberを立ち上げると，コンパイルが通らない．
+これは，mROS 2-POSIXが任意のメッセージ型を扱うためのTemplateを用いた実装部分で，Pub/Subのメッセージ型を格納するリストに重複を許していたからである．
+そのため，本実装では，重複を許さないようにリストの格納部分を修正し，同じメッセージ型を使用してもコンパイルエラーが発生しないようにした．
 これらの問題はmROS 2-Wasmにも同様に存在したが，mROS 2-POSIXを実装する際に解決した方法と同じであったため，省略する．
 % ROS 2の実装ではモーター電源のon/offにサービス通信を使っており，mROS 2-POSIXでは第２章で述べた通り，Pub/Sub通信でしか通信することができない．
 % そのため，モーターを起動する際は，端末でros2 Service callを使うことでmROS 2-POSIXのパブリッシュからモーターが動作するようにしなければならなった．

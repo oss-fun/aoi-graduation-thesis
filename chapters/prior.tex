@@ -5,6 +5,18 @@
     \caption{mROS2-wasmの構成図}
     \label{fig:mros2-wasm_configuration}
 \end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=10cm]{images/fig3_kakimoto_pubsubtime.png}
+    \caption{mROS2-wasmの通信性能}
+    \label{fig:mros2-wasm_configuration}
+\end{figure}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=10cm]{images/fig3_mros2-wasm_memory.png}
+    \caption{mROS2-wasmのメモリ使用量}
+    \label{fig:mros2-wasm_configuration}
+\end{figure}
 柿本らによって，mros2-POSIXをwasm環境で実行するmros2-wasmが提案された．[]
 WebAssembly（Wasm）は，C，C++，C\#，Rustなどの言語で書かれたプログラムをコンパイルのターゲットWeb上でプログラムを高速に実行するために設計された，スタックベースの仮想マシンで実行される仮想命令アーキテクチャである．[4][16]
 サンドボックスな環境でアプリケーションは実行されるため，ハードウェアや言語，プラットフォームに依存せず，ネイティブ日回実行速度でコードを実行できるという性質がある[]
@@ -46,8 +58,9 @@ timespec構造体は，スレッドの同期処理などに使われるpthread\_
 \\　mROS 2-Wasmは通信時間とメモリサイズと計算処理性能の評価が行われた．
 \\　計算処理性能の評価では，ノード内で擬似作業として1以上の整数を順に素数判定し，1024までの素数を見つける処理を行う実装をし，その時間を計測，評価した．
 コンパイル方式はAoTとClassic インタプリタとFast インタプリタを使って計測した．
-\\　通信時間ではmROS 2-WasmとmROS 2を比較評価した．
+\\　通信時間ではmROS 2-WasmとmROS 2を比較評価した．その結果を図3.2に示す．
 計測方法はクラウド想定のデバイスから文字列データを送信し，ロボット想定のデバイスからデータを受けとると，そのままデータを返し，クラウド想定のデバイスが受け取るまでの時間，RTT（Round Trip Time）を計測している．mROS 2-Wasmのコンパイル方式はAoTとJITを使わずClassicインタプリタでコンパイルしたバイナリファイルを使って計測した．
-\\　メモリサイズの評価では，mROS 2-POSIXとmROS 2-WasmとmROS 2-POSIXを比較評価している．この計測では，計算処理性能で実装された処理のプロセスIDのRSS（Resident Set Size）とVSS（Virtual Set Size）を取得し評価をした．
+\\　メモリサイズの評価では，mROS 2-POSIXとmROS 2-WasmとmROS 2-POSIXを比較評価している．その結果を図3.3に示す．
+この計測では，計算処理性能で実装された処理のプロセスIDのRSS（Resident Set Size）とVSS（Virtual Set Size）を取得し評価をした．
 今後の課題として，mROS 2-Wasmに実行状態の保存，復元機構を実装することが残った．
 %柿本さんの研究の評価方法を載せたい通信性能でAOTとJITは動作しなかったため，Classicでの評価が行われた．ということを言わないといけない
