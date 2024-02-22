@@ -47,29 +47,29 @@
   \begin{tabular}{|l|c|c|c|}
   \hline
    & ROS2 & mROS2-POSIX & mROS2-Wasm \\ \hline
-  RES(Resident Size) & 36.79Mib & 31.49Mib & 89.61Mib \\ \hline
-  SHR(Shared Memory) & 28.33Mib & 24.48Mib & 56.04Mib \\ \hline
-  RSS(Resident Set Size) & 65.12Mib & 55.98Mib & 145.65Mib \\ \hline
+  RES(Resident Size) & 32.51MB & 1.66MB & 17.37MB \\ \hline
+  SHR(Shared Memory) & 25.16MB & 1.48MB & 1,73MB \\ \hline
+  RSS(Resident Set Size) & 57.67MB & 3.14MB & 19.10MB \\ \hline
   \end{tabular}
-  \caption{/cmd\_velの通信時間の統計}
+  \caption{各環境の物理消費メモリ（RSS）}
   \label{tab:sensor_stats}
 \end{table}
 
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=10cm]{images/fig6_lightsensors.png}
+  \includegraphics[width=15cm]{images/fig6_lightsensors.png}
   \caption{トピック: /light\_sensorsの通信時間の箱ひげ図}
   \label{fig:light_sensors}
 \end{figure}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=10cm]{images/fig6_cmdvel.png}
+  \includegraphics[width=15cm]{images/fig6_cmdvel.png}
   \caption{トピック: /cmd\_velの通信時間の箱ひげ図}
   \label{fig:cmd_vel}
 \end{figure}
 \begin{figure}[ht]
   \centering
-  \includegraphics[width=10cm]{images/fig6_memory.png}
+  \includegraphics[width=15cm]{images/fig6_mros2-wasm_memory_v2.png}
   \caption{各環境でRES，SHRを合わせたRSSの比較}
   \label{fig:allmemory}
 \end{figure}
