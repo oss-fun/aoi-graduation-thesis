@@ -54,7 +54,7 @@ timespec構造体は，スレッドの同期処理などに使われるpthread\_
 \end{itemize}
 一方，mROS 2-POSIXのlwIP-POSIXでは，IP\_MULTICAST\_IF，IP\_ADD\_MEMBERSHIP，IP\_MULTICAST\_TTLが使用されており，IP\_MULTICAST\_IFがWAMRのSocket APIには存在しないためネットワークインターフェースの指定ができないという問題があった．SocketはIP\_MULTICAST\_IFによるネットワークインターフェースの指定がない場合はデフォルトのネットワークインターフェースが指定されるため，IP\_MULTICAST\_IFを設定するsetsockopt関数を削除して実装が行われた．また，マルチキャスト通信の配信範囲を制御するTTLを設定するIP\_MULTICAST\_TTLの指定時に，WAMRのSocket APIではオプションデータの長さが4bytesでないときプログラムが終了してしまう．lwIP-POSIXではこの長さが1bytesで定義されていたため4bytesに変更した．このようにWAMRのSocket APIに合わせた細かい変更を行うことで，lwIP-WASMが実装された．
 システムのビルドは，外部のプロジェクトのビルド・インストールなどを可能にするExternalProjectを用いてmROS 2のディレクトリ外から行うことができる．
-\\　以上の実装により，実行中のmROS 2-POSIXをWasm化することができた．
+以上の実装により，実行中のmROS 2-POSIXをWasm化することができた．
 \\　mROS 2-Wasmは通信時間とメモリサイズと計算処理性能の評価が行われた．
 \\　計算処理性能の評価では，ノード内で擬似作業として1以上の整数を順に素数判定し，1024までの素数を見つける処理を行う実装をし，その時間を計測，評価した．
 コンパイル方式はAoTとClassic インタプリタとFast インタプリタを使って計測した．

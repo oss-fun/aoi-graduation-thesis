@@ -40,12 +40,12 @@
 本章では，mROS 2-POSIXとROS 2の性能を比較評価するにあたって，mROS 2-POSIXとROS 2に実装するアプリケーションの概要について説明する．
 \section{実装アプリケーションの構成}
 本研究ではROS 2で動作するライントレースノードをmROS 2-POSIXに移植し，mROS 2-POSIXとmROS 2-wasm，ROS 2の性能を比較評価する．
-比較評価のためのアプリケーションの構成図を図4.1，図4.2に示す．
-\\　図4.1はmROS 2-POSIXとmROS 2-wasm，ROS 2の実装アプリケーションの構成である．
+比較評価のためのアプリケーションの構成図を図5.1，図5.2に示す．
+\\　図5.1はmROS 2-POSIXとmROS 2-wasm，ROS 2の実装アプリケーションの構成である．
 図のようにラズパイマウスを制御するノードはosに近い実装になっており，動的配置機構を適用するに適していないと判断した．
 したがって，OSに依存しないノードであるライントレースノード（followerノード）をmROS 2-POSIXとmROS 2-wasmそれぞれに実装した．
-\\　図4.2はライントレースノードとその制御ノードのPub/Sub通信についての構成図である．
-ライントレースノードと制御ノードは相互に５つのトピックを介して通信を行う．
+\\　図5.2はライントレースノードとその制御ノードのPub/Sub通信についての構成図である．
+ライントレースノードと制御ノードは相互に5つのトピックを介して通信を行う．
 \begin{itemize}
     \item /light\_sensors
     \item /switches
@@ -104,9 +104,9 @@ mROS 2-POSIXは2024年2月時点で，最後の更新が2年前であり，定�
 また，mROS 2-POSIXを評価するにあたって，高瀬らは1つのPublisherとSubscriberを用いたネットワークスループットを評価した．
 したがって，実際のアプリケーションのような複数のPublisherとSubscriberを用いるアプリケーションで，mROS 2-POSIX実行しROS 2と通信を試みようとすると，ROS 2のSubscriberでpayloaderrorが発生した．
 このerrorはROS 2のSubscriberに対して，想定以上のデータが送信された場合に表示される．
-ros2 topic echoを用いてトピックに送信されているデータを確認したところ図4.3に示すように，ROS 2のSubscriberに対してmROS 2-POSIXでPublisherとして定義されているすべてのメッセージが送信されていることが分かった．
+ros2 topic echoを用いてトピックに送信されているデータを確認したところ図5.3に示すように，ROS 2のSubscriberに対してmROS 2-POSIXでPublisherとして定義されているすべてのメッセージが送信されていることが分かった．
 これはmROS 2-POSIXのPublisherのインスタンスが1つのみの生成になっていることが原因である．
-実装の状態を図4.4に示す．Publisherインスタンスにその情報が上書きされ，最後に作成されたPublisherのトピック宛にすべてのメッセージが送信されている．そのため，本実装では通信用インスタンスに対して，Publisherのインスタンスを生成するように修正した．
+実装の状態を図5.4に示す．Publisherインスタンスにその情報が上書きされ，最後に作成されたPublisherのトピック宛にすべてのメッセージが送信されている．そのため，本実装では通信用インスタンスに対して，Publisherのインスタンスを生成するように修正した．
 \\　mROS 2-POSIXはデフォルトでQoSの設定がBEST\_Effortになっている．
 QoSはBest\_EffortとReliableの2つがあり，Best\_Effortはデータの到達を保証しないため，ROS 2ではデフォルトでReliableに設定されている．
 PublisherのQoS設定がBest\_Effort，SubscriberのQoS設定がReliableの場合，SubscriberはPublisherからデータを受信できない．
