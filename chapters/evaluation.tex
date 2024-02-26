@@ -75,7 +75,7 @@
 \end{figure}
 本章では，実装したアプリケーションを用いて，mROS 2-POSIXとmROS 2-WasmとROS 2の性能を比較評価した実験について述べる．
 \section{概要}
-本研究でmROS 2-POSIX，mROS 2-Wasm，ROS 2の性能を比較評価するために，それぞれの環境に実装したライントレースノードをラズパイマウスにジョイントしているRassberry Pi 3B+上で動作させ，制御ノードとライントレースノードの通信時間とメモリ消費量を比較する実験を実施した．
+本研究でmROS 2-POSIX，mROS 2-Wasm，ROS 2の性能を比較評価するために，それぞれの環境に実装したライントレースノードをラズパイマウスにジョイントしているRassberry Pi 3B +上で動作させ，制御ノードとライントレースノードの通信時間とメモリ消費量を比較する実験を実施した．
 \\　実験の実行環境を表6.1に示す．なお，第2章で述べた通り，ネイティブROS 2のランタイムディストリビューションは最新版であるhumbleを採用した．
 \\　通信時間の計測は，2つのノード間でPub/Sub通信にかかる時間をmROS 2-POSIX，ROS 2間でstd::chrono::high\_resolution\_clockを用いて計測し，mROS 2-Wasm，ROS 2間でLinux標準のclock\_gettime()を用いた．
 mROS 2-Wasmでstd::chrono::high\_resolution\_clockを用いると，実行時に取得できる時間がROS 2側のstd::chrono::high\_resolution\_clockと数値が大きく異なり，比較が困難であったためclock\_gettime()を使用した．
@@ -87,8 +87,7 @@ mROS 2-Wasmでstd::chrono::high\_resolution\_clockを用いると，実行時に
 /light\_sensorsと/cmd\_velのPub/Subの関係は第5章で述べた通り，/light\_sensorsは制御ノードからPublishされるトピックであり，mROS 2-POSIX，mROS 2-WasmはSubscribeするトピックである．
 /cmd\_velはmROS 2-POSIX，mROS 2-WasmがPublishするトピックであり，制御ノードがSubscribeするトピックである．
 \\　メモリ消費量の計測は，mROS 2-POSIX，mROS 2-Wasm，ROS 2の各環境でのライントレースノードに対して，実行しているランタイムのプロセスIDを取得し，そのプロセスに割り当てられているRSSを計測した．
-各環境で同様の計測を行い，RSSは時間によって変化しなかった．
-このRSSを用いて，グラフを作成した．
+各環境で同様の計測を行い，RSSは時間によって変化しなかったため，このRSSを用いて，グラフを作成した．
 \section{結果}
 実験結果を図6.1から図6.3および表6.2から表6.4に示す．
 \\　図6.1では各環境ごとにトピック/light\_sensorsのPublishした現在時刻とSubscribeした現在時間の差を計算し，箱ひげ図として通信時間のばらつきを示している．
@@ -116,12 +115,15 @@ mROS 2-WasmはROS 2よりもメモリ消費量が38.57MBと少なく，mROS 2-PO
 \section{考察}
 図6.1，表6.2，図6.2，表6.3から，mROS 2-POSIXはROS 2と比べてPub/Sub通信の遅延が少なく，安定かつ高速に通信できていることが分かった．
 これは，mROS 2-POSIXが組込み用デバイス向けであるDDSのembeddedRTPSが軽量なTCP/IPスタックであるlwIPを採用しているためだと考える．
-さらに，ROS 2とmROS 2-Wasmの通信時間を比べると，ROS 2側がSubscribeを行い，mROS 2-Wasm側がPublishを行うトピック/cmd\_velでは平均の遅延の差は約4000μsecmROS 2-Wasmの遅延が大きかったものの，標準偏差はROS 2よりも小さかった．
-しかし，mROS 2-WasmがROS 2からPublishされたメッセージをSubscribeしているトピック/light\_sensorsでは，mROS 2-Wasmの遅延がROS 2の時よりも平均で3倍ほど大きく，標準偏差はおよそ5倍になっていた．
+そして，ROS 2とmROS 2-Wasmの通信時間を比べると，ROS 2側がSubscribeを行い，mROS 2-Wasm側がPublishを行うトピック/cmd\_velでは平均の遅延の差は約4000μsec，mROS 2-Wasmの遅延が大きかったものの，標準偏差はROS 2よりも小さかった．
+mROS 2-WasmがROS 2からPublishされたメッセージをSubscribeしているトピック/light\_sensorsでは，mROS 2-Wasmの遅延がROS 2の時よりも平均で3倍ほど大きく，標準偏差はおよそ5倍になっていた．
 これは，mROS 2-WasmがClassicインタプリタでコンパイルされ実行されているのが原因であると考える．
 しかし，Classicインタプリタで実行されたノードでもPublishの通信時間はROS 2とそこまで大きな差がないということが示された．
+この原因として，Publisherの実装がコールバック関数を呼び出す必要のあるSubscriberと比べて，メッセージ処理に時間がかかってしまい，遅延が大きくなると考える．
+\\　通信性能の評価では，実アプリケーション上でmROS 2-POSIXはROS 2よりも高速で動作することが示された．
+また，mROS 2-WasmはClassicインタプリタでコンパイルされた場合，遅延がほかの環境よりも大きくなることが示された．
 \\　図6.3と表6.4から，mROS 2-POSIXはROS 2と比べてメモリ消費量が少ないということがわかった．
 これはmROS 2-POSIXがROS 2で実装されているアプリケーションでも軽量なランタイムとして機能しているということを示している．
 また，mROS 2-WasmはROS 2と比べてメモリ消費量が少ないということがわかった．そして，mROS 2-WasmはmROS 2-POSIXと比べてメモリ消費量が大きいということがわかった．
-これは，mROS 2-WasmがネイティブのROS 2よりもメモリ消費量がすくなく，WebAssembly上で実アプリケーションのノードを実行することができる環境であることをしめしている．
+これは，mROS 2-WasmがネイティブのROS 2よりもメモリ消費量が少なく，WebAssembly上で実アプリケーションのノードを実行することができる環境であることを示している．
 
