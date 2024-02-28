@@ -2,7 +2,7 @@
 %ラズパイマウスのfollowerノードについての実装を書く．今はspheroとラズパイマウスのwiibordを本実装として話しているため改変が必要．aproachに持っていく．
 \begin{figure}[ht]
     \centering
-    \includegraphics[width=15cm]{images/fig4_raspimouse_configuration.png}
+    \includegraphics[width=15cm]{images/fig4_mros2_ros2_raspimouse_configuration.png}
     \caption{実装アプリケーション構成}
     \label{fig:mros2_ros2_raspimouse_configuration}
 \end{figure}
@@ -42,7 +42,7 @@
 mROS 2-POSIXとmROS 2-WasmとROS 2を比較評価するためのアプローチとしてROS 2で実際に動作するアプリケーションが望ましい．
 第1章で述べた通り，mROS 2-POSIXの評価はネットワークスループットのマイクロベンチマークに留まり，実アプリケーションにおける有用性が十分に評価されていない．
 そのため，mROS 2-POSIXとmROS 2-WasmとROS 2に以下の条件を満たしたアプリケーションを実装し，比較評価を行う．
-実装するアプリケーションの要件として，Pub-Sub通信のみを使用したアプリケーションであること，組み込みデバイス上で動作できるアプリケーションであること，OSへの依存が少ないアプリケーションであることの3つを要件とした．
+実装するアプリケーションの要件として，Pub-Sub通信を主な機能として使用しているアプリケーションであること，組み込みデバイス上で動作できるアプリケーションであること，OSへの依存が少ないアプリケーションであることの3つを要件とした．
 まず，ROS 2にはPub/Sub通信やService通信，Action通信があるが，mROS 2-POSIXとmROS 2-POSIXを基盤としたmROS 2-Wasmには，Pub/Sub通信のみの実装になっている．
 これはmROS 2-POSIXで使用されているembeddedRTPSが組込み向けの通信プロトコルであり，軽量化を図るためPub/Sub通信のみの実装になっているからである．
 そのため，ROS 2のアプリケーションをmROS 2-POSIXとmROS 2-Wasmに移植する際には，Pub/Sub通信を主な通信手段としているアプリケーションが望ましい．
@@ -90,6 +90,8 @@ mROS 2-POSIXとmROS 2-WasmとROS 2を比較評価するためのアプローチ�
 また，同時にほかのトピックでの間でも通信が行われる．
 次に，各Switchが押されたタイミングでライトセンサからライン外の値とライン内の値を保持し，その差を2で割った数を基準値にして保持する．
 そして，ライントレースが実行され，保持した基準値に基づいて/cmd\_velトピックに対してモーター制御の命令を送る．
+このように，ライントレースが実行されるノードを各環境に実装した．
+また，mROS 2-Wasmは第\ref{sec:usage}章で述べた通り，AOT，JIT，Classicインタプリタ，Fastインタプリタの4つのコンパイル方式があるが，本研究ではClassicインタプリタでコンパイルしたバイナリを用いて評価を行う．
 % したがって，図4.3のフローはROS 2とmROS 2-POSIX，mROS 2-wasmの動作フローを示している．
 % まず，Switchを介してライトセンサの値を取得する動作を行う．
 % プログラム上で保持するライトセンサの値はラインの外側の値と，ラインの内側の値の2つである．
@@ -114,37 +116,44 @@ mROS 2-POSIXとmROS 2-WasmとROS 2を比較評価するためのアプローチ�
 % mROS 2-POSIXの実装は，ROS 2の実装をmROS 2-POSIXに移植した．
 % 移植にあたって，パブリッシュやサブスクライブなどのAPIをmROS 2-POSIXのAPIに変更した．
 \section{実装アプリケーションの問題と解決策}
-ROS 2で実装されているノードをmROS 2-POSIXに実装する際に，mROS 2-POSIX固有の様々な問題に遭遇した．
+ROS 2で実装されているノードをmROS 2-POSIXに実装する際に，mROS 2-POSIX固有の様々な問題や実装に関する問題に遭遇した．
 以下にその問題を述べる．
 \begin{itemize}
-    \item mros2-posixのPublisherのバグfix
-    \item mros2-posixのQoS設定の変更
-    \item mros2-posixのサービス通信が実装されていない
+    \item mROS 2-POSIXのPublisherのバグfix
+    \item mROS 2-POSIXのQoS設定の変更
+    \item ライントレースノードのService通信部分の削除
+    \item mROS 2-POSIXが同じ型のメッセージを複数Pub/Sub通信できない
 \end{itemize}
 %必要性を説いてから問題を書く
 %実装課題1:mros2-posixのバグ
 %実装課題2:stackしたところはmros2でqosの設定を変更するところ,config
 %実装課題3:ラズパイマウスのモーターのon/offにサービス通信を使っているが，mros2-posixにはサービス通信がない
 %実装課題4:
-mROS 2-POSIXは2024年2月時点で，最後の更新が2年前であり，定期的にメンテナンスされているとは言いにくい．
-また，mROS 2-POSIXを評価するにあたって，高瀬らは1つのPublisherとSubscriberを用いたネットワークスループットを評価した．
-したがって，実際のアプリケーションのような複数のPublisherとSubscriberを用いるアプリケーションで，mROS 2-POSIX実行しROS 2と通信を試みようとすると，ROS 2のSubscriberでpayloaderrorが発生した．
+　既存のmROS 2-POSIX実装では，Publisherにバグが存在し，適切に動作しない．
+mROS 2-POSIXとROS 2で通信を行う場合にはpayload errorが発生する．
+これは，実際のアプリケーションのような複数のPublisherとSubscriberを用いるアプリケーションで，mROS 2-POSIX実行しROS 2と通信を試みようとすると，発生する．
 このerrorはROS 2のSubscriberに対して，想定以上のデータが送信された場合に表示される．
 ros2 topic echoを用いてトピックに送信されているデータを確認したところ図\ref{fig:mros2bug}に示すように，ROS 2のSubscriberに対してmROS 2-POSIXでPublisherとして定義されているすべてのメッセージが送信されていることが分かった．
 これはmROS 2-POSIXのPublisherのインスタンスが1つのみの生成になっていることが原因である．
-実装の状態を図\ref{fig:mros2bug-fix}に示す．Publisherインスタンスにその情報が上書きされ，最後に作成されたPublisherのトピック宛にすべてのメッセージが送信されている．そのため，本実装では通信用インスタンスに対して，Publisherのインスタンスを生成するように修正した．
-\\　mROS 2-POSIXはデフォルトでQoSの設定がBest\_Effortになっている．ROS 2ではデフォルトでReliableに設定されている．
-PublisherのQoS設定がBest\_Effort，SubscriberのQoS設定がReliableの場合，SubscriberはPublisherからデータを受信できない．
-そのため，ROS 2とmROS 2-POSIXのノード間でPub/Sub通信するためには，まず最初にどちらかのQoS設定を変更する必要がある．
-mROS 2-POSIXのDDS[]であるembeddedRTPS[17]はQoSの設定にReliableとBEST\_Effortをサポートしているため，本実装ではmROS 2-POSIXのQoSをReliableに変更し，対応した．
-\\　ROS 2のライントレースノードの実装では，モーターのon/offにサービス通信を使っている．
+mROS 2-POSIXは通信のためにDDS実装であるembeddedRTPSの機能のインスタンスを生成している．
+主に通信用のインスタンスとPublisherのインスタンス，Subscriberのインスタンスが生成される．
+バグ修正前のインスタンスの状態とバグ修正後のインスタンス状態をを図\ref{fig:mros2bug-fix}に示す．
+Publisherインスタンスにその情報が上書きされ，最後に作成されたPublisherのトピック宛にすべてのメッセージが送信されている．
+そのため，本実装では通信用インスタンスに対して，Publisherのインスタンスを生成するように修正した．
+\\　第2章で述べた通り，ROS 2には通信データをどのように扱うか設定できるQoS設定が存在する．
+このQoS設定はROS 2でReliableが設定されており，mROS 2-POSIXはデフォルトでBest\_effortが設定されている．
+第２章の表2.1に示すようにSubscriberのQoSがReliable，PublisherのQoSがBest\_effortの場合通信が成立しない．
+embeddedRTPSにはQoS設定としてBest\_effortとReliableがROS 2同様に用意されており，mROS 2-POSIXかROS 2のノード間で通信するために，mROS 2-POSIXのQoS設定の変更を行った．
+\\　mROS 2-POSIXではService通信が使えないため，Service通信を使わないノードの実装を実現する必要がある．
+OS 2のライントレースノードの実装では，モーターのon/offにService通信を使っている．
 2章で説明した通り，Service通信はROS 2の通信方法の1つであり，クライアント・サーバーモデルに近い通信方法である．
-ROS 2のライントレースノードの実装では，このサービス通信を用いてラズパイマウスのモーターのon/offを操作しているが，mROS 2-posixにはService通信の実装がされておらず，そのまま移植することはできない．
-本実装では，mROS 2-POSIXの実装部分でモーターのon/offの処理を削除し，ノードを立ち上げた後，ROS 2の制御ノードに対して端末上からros2 service callを使用することで，モーター電源のon/offを操作した．
-\\　本実装では同じメッセージ型を使用することはなかったが，既存のmROS 2-POSIXで同じメッセージ型を使用するPublisherもしくはSubscriberを立ち上げると，コンパイルが通らない．
+ROS 2のライントレースノードの実装では，このService通信を用いてラズパイマウスのモーターのon/offを操作しているが，mROS 2-posixにはService通信の実装がされておらず，そのまま移植することはできない．
+本実装では，mROS 2-POSIXの実装部分でモーターのon/offの処理を削除し，ノードを立ち上げた後，ROS 2の制御ノードに対してターミナルからros2 service callを使用することで，モーター電源のon/offを操作した．
+\\　本実装では同じメッセージ型を使用することはなかったが，既存のmROS 2-POSIXで同じメッセージ型を使用するPublisherもしくはSubscriberを立ち上げると，ノードのビルドが成功しない．
 これは，mROS 2-POSIXが任意のメッセージ型を扱うためのTemplateを用いた実装部分で，Pub/Subのメッセージ型を格納するリストに重複を許していたからである．
 そのため，本実装では，重複を許さないようにリストの格納部分を修正し，同じメッセージ型を使用してもコンパイルエラーが発生しないようにした．
 これらの問題はmROS 2-Wasmにも同様に存在したが，mROS 2-POSIXを実装する際に解決した方法と同じであったため，解決した方法と同様で行った．
+
 % ROS 2の実装ではモーター電源のon/offにサービス通信を使っており，mROS 2-POSIXでは第２章で述べた通り，Pub/Sub通信でしか通信することができない．
 % そのため，モーターを起動する際は，端末でros2 Service callを使うことでmROS 2-POSIXのパブリッシュからモーターが動作するようにしなければならなった．
 % また，第３章のRaspimouseの節で述べたように，ROS 2とmROS 2-POSIXのPub/Sub通信がうまくいかないという問題がある．

@@ -76,44 +76,47 @@
 本章では，実装したアプリケーションを用いて，mROS 2-POSIXとmROS 2-WasmとROS 2の性能を比較評価した実験について述べる．
 \section{概要}
 本研究でmROS 2-POSIX，mROS 2-Wasm，ROS 2の性能を比較評価するために，それぞれの環境に実装したライントレースノードをラズパイマウスにジョイントしているRassberry Pi 3B +上で動作させ，制御ノードとライントレースノードの通信時間とメモリ消費量を比較する実験を実施した．
-\\　実験の実行環境を表6.1に示す．なお，第2章で述べた通り，ネイティブROS 2のランタイムディストリビューションは最新版であるhumbleを採用した．
-\\　通信時間の計測は，2つのノード間でPub/Sub通信にかかる時間をmROS 2-POSIX，ROS 2間でstd::chrono::high\_resolution\_clockを用いて計測し，mROS 2-Wasm，ROS 2間でLinux標準のclock\_gettime()を用いた．
-mROS 2-Wasmでstd::chrono::high\_resolution\_clockを用いると，実行時に取得できる時間がROS 2側のstd::chrono::high\_resolution\_clockと数値が大きく異なり，比較が困難であったためclock\_gettime()を使用した．
+この評価の目的は，ROS 2とmROS 2-POSIX，mROS 2-Wasmの通信性能とメモリ消費量を実アプリケーション上の値をもとに比較し，実アプリケーション上でもmROS 2-POSIXが動的配置機構のソフトウェア基盤として適しているか，そして，mROS 2-Wasmを実アプリケーション上で動作させた場合でも，mROS 2-POSIXの軽量という利点を損なわないかを示すことである．
+\\　実験の実行環境を表\ref{tab:experiment}に示す．なお，第2章で述べた通り，ネイティブROS 2のランタイムディストリビューションは最新版であるhumbleを採用した．
+\\　通信時間の計測は，2つのノード間でPub/Sub通信にかかる時間をLinux標準のclock\_gettime()を用いた．
+clock\_gettime()といっても，様々な実装があり，実時間を計測するシステム全体で一意な時間を取得するCLOCK\_REALTIMEや，ある開始地点からの単調増加の時間で表現されるCLOCK\_MONOTONICなどがある．
+今回計測に用いたのはCLOCK\_MONOTONICである．
+これは，
 時間を計測するトピックは，/light\_sensorsと/cmd\_velである．
 このトピックはライントレースする際に使用する主なトピックであり，第4章で述べた通り，/light\_sensorsはライトセンサの値を，/cmd\_velはラズパイマウスのモーターを制御するためのトピックである．
 /light\_sensorsはInt16型が4つ格納されている配列であり，/cmd\_velはgeometry\_msgs/Twist型で，float64型が6つ格納されている配列である．
 この2つのトピックのPublishした現在時刻，Subscribeした現在時刻を取得し，その差分を通信時間とした．
-評価にあたって，通信時間の箱ひげ図，平均値，最大値，最小値，標準偏差を計算した．
+評価にあたって，試行回数を1000回とし，平均値，最大値，最小値，標準偏差を計算し，通信時間の箱ひげ図を作成した．
 /light\_sensorsと/cmd\_velのPub/Subの関係は第5章で述べた通り，/light\_sensorsは制御ノードからPublishされるトピックであり，mROS 2-POSIX，mROS 2-WasmはSubscribeするトピックである．
 /cmd\_velはmROS 2-POSIX，mROS 2-WasmがPublishするトピックであり，制御ノードがSubscribeするトピックである．
-\\　メモリ消費量の計測は，mROS 2-POSIX，mROS 2-Wasm，ROS 2の各環境でのライントレースノードに対して，実行しているランタイムのプロセスIDを取得し，そのプロセスに割り当てられているRSSを計測した．
+\\　メモリ消費量の計測は，mROS 2-POSIX，mROS 2-Wasm，ROS 2の各環境でのライントレースノードに対して，実行しているランタイムのプロセスIDを取得し，そのプロセスに割り当てられているRSS（物理消費メモリ）を計測した．
 各環境で同様の計測を行い，RSSは時間によって変化しなかったため，このRSSを用いて，グラフを作成した．
 \section{結果}
-実験結果を図6.1から図6.3および表6.2から表6.4に示す．
-\\　図6.1では各環境ごとにトピック/light\_sensorsのPublishした現在時刻とSubscribeした現在時間の差を計算し，箱ひげ図として通信時間のばらつきを示している．
+実験結果を図\ref{fig:light_sensors}から図\ref{fig:allmemory}および表\ref{tab:light_sensors_stats}から表\ref{tab:rss_stats}に示す．
+\\　図\ref{fig:light_sensors}では各環境ごとにトピック/light\_sensorsのPublishした現在時刻とSubscribeした現在時間の差を計算し，箱ひげ図として通信時間のばらつきを示している．
 ROS 2とmROS 2-POSIXの通信時間のばらつきは比較的同等であるが，mROS 2-Wasmを見ると，非常に大きなばらつきがあった．
-\\　表6.2は，トピック/light\_sensorsに対して各環境ごとに通信時間の平均値，最大値，最小値，標準偏差を示している．
-表6.2を見ると，一番小さい平均値を記録したのがmROS 2-POSIXであり，次いでROS 2，mROS 2-Wasmの順である．
+\\　表\ref{tab:light_sensors_stats}は，トピック/light\_sensorsに対して各環境ごとに通信時間の平均値，最大値，最小値，標準偏差を示している．
+表\ref{tab:light_sensors_stats}を見ると，一番小さい平均値を記録したのがmROS 2-POSIXであり，次いでROS 2，mROS 2-Wasmの順である．
 mROS 2-POSIXとROS 2の平均時間の差は約77μsecであり，mROS 2-POSIXとROS 2の通信時間の平均がおおよそ同程度，またはmROS 2-POSIXのPub/Sub通信の方がROS 2よりも若干高速であることだった．
 標準偏差は測定値の分布が平均値のまわりにどの程度集まっているか示す指標で小さい順に，mROS 2-POSIX，ROS 2，mROS 2-Wasmの順である．
 mROS 2-POSIXとROS 2の差はほとんどなく，若干ROS 2のばらつきが大きいが，ほとんど同程度であった．
 mROS 2-Wasmの通信時間の平均がmROS 2-POSIXとROS 2はおおよそ同等であることのに比べて，およそ3倍になっており，標準偏差は，mROS 2-POSIXとROS 2がおおよそ同等であるのに対し，mROS 2-Wasmはおよそ5倍の値になっている．
-\\　図6.2は，図6.1と同様に各環境ごとの/cmd\_velの通信時間のばらつきを示す箱ひげ図である．
-図6.2を見ると，mROS 2-POSIXとROS 2とmROS 2-Wasmの通信時間のばらつきはほぼ同等であった．
-\\　表6.3は，表6.2同様トピックの/cmd\_velの通信時間の平均値，最大値，最小値，標準偏差を示している．
-表6.3の平均値は，小さい順にmROS 2-POSIX，ROS 2，mROS 2-Wasmの順である．
+\\　図\ref{fig:cmd_vel}は，図\ref{fig:light_sensors}と同様に各環境ごとの/cmd\_velの通信時間のばらつきを示す箱ひげ図である．
+図\ref{fig:cmd_vel}を見ると，mROS 2-POSIXとROS 2とmROS 2-Wasmの通信時間のばらつきはほぼ同等であった．
+\\　表\ref{tab:cmd_vel_stats}は，表\ref{tab:light_sensors_stats}同様トピックの/cmd\_velの通信時間の平均値，最大値，最小値，標準偏差を示している．
+表\ref{tab:cmd_vel_stats}の平均値は，小さい順にmROS 2-POSIX，ROS 2，mROS 2-Wasmの順である．
 mROS 2-POSIXとROS 2の差は5082μsecであり，mROS 2-POSIXの方が遅延が少なかった．
 また，ROS 2とmROS 2-Wasmの差は4003μsecであり，ROS 2の方が遅延が少なかった．
 標準偏差を見ると，小さい順にmROS 2-Wasm，mROS 2-POSIX，ROS 2の順である．
 これは平均値の順と逆であり，mROS 2-WasmとmROS 2-POSIXの差はほとんどなく，ROS 2の標準偏差はmROS 2-WasmとmROS 2-POSIXで大きくことなっている．
-\\　図6.3は，ライントレースノードを各環境で動作させたときのRES（Resident Size），SHR（Shared Memory）を合わせたRSSの棒グラフである．
-表6.4は，各県境のRES，SHR，RSSをそれぞれ数字で示している．
-図6.3，表6.4を見ると，mROS 2-POSIXのメモリ消費量がもっとも小さく，次いでmROS 2-Wasm，ROS 2の順である．
+\\　図\ref{fig:allmemory}は，ライントレースノードを各環境で動作させたときのRES（Resident Size），SHR（Shared Memory）を合わせたRSSの棒グラフである．
+表\ref{tab:rss_stats}は，各環境のRES，SHR，RSSをそれぞれ数字で示している．
+図\ref{fig:allmemory}，表\ref{tab:rss_stats}を見ると，mROS 2-POSIXのメモリ消費量がもっとも小さく，次いでmROS 2-Wasm，ROS 2の順である．
 mROS 2-POSIXはROS 2やmROS 2-Wasmと比べて非常に小さなメモリ消費量であった．
 ROS 2との差は54.53MBである．
 mROS 2-WasmはROS 2よりもメモリ消費量が38.57MBと少なく，mROS 2-POSIXのほうが15.96MB少ない．
 \section{考察}
-図6.1，表6.2，図6.2，表6.3から，mROS 2-POSIXはROS 2と比べてPub/Sub通信の遅延が少なく，安定かつ高速に通信できていることが分かった．
+図\ref{fig:light_sensors}，表\ref{light_sensors_stats}，図\ref{fig:cmd_vel}，表\ref{tab:cmd_vel_stats}から，mROS 2-POSIXはROS 2と比べてPub/Sub通信の遅延が少なく，安定かつ高速に通信できていることが分かった．
 これは，mROS 2-POSIXが組込み用デバイス向けであるDDSのembeddedRTPSが軽量なTCP/IPスタックであるlwIPを採用しているためだと考える．
 そして，ROS 2とmROS 2-Wasmの通信時間を比べると，ROS 2側がSubscribeを行い，mROS 2-Wasm側がPublishを行うトピック/cmd\_velでは平均の遅延の差は約4000μsec，mROS 2-Wasmの遅延が大きかったものの，標準偏差はROS 2よりも小さかった．
 mROS 2-WasmがROS 2からPublishされたメッセージをSubscribeしているトピック/light\_sensorsでは，mROS 2-Wasmの遅延がROS 2の時よりも平均で3倍ほど大きく，標準偏差はおよそ5倍になっていた．
@@ -122,8 +125,13 @@ mROS 2-WasmがROS 2からPublishされたメッセージをSubscribeしている
 この原因として，Publisherの実装がコールバック関数を呼び出す必要のあるSubscriberと比べて，メッセージ処理に時間がかかってしまい，遅延が大きくなると考える．
 \\　通信性能の評価では，実アプリケーション上でmROS 2-POSIXはROS 2よりも高速で動作することが示された．
 また，mROS 2-WasmはClassicインタプリタでコンパイルされた場合，遅延がほかの環境よりも大きくなることが示された．
-\\　図6.3と表6.4から，mROS 2-POSIXはROS 2と比べてメモリ消費量が少ないということがわかった．
+\\　図\ref{fig:allmemory}と表\ref{tab:rss_stats}から，mROS 2-POSIXはROS 2と比べてメモリ消費量が少ないということがわかった．
 これはmROS 2-POSIXがROS 2で実装されているアプリケーションでも軽量なランタイムとして機能しているということを示している．
-また，mROS 2-WasmはROS 2と比べてメモリ消費量が少ないということがわかった．そして，mROS 2-WasmはmROS 2-POSIXと比べてメモリ消費量が大きいということがわかった．
-これは，mROS 2-WasmがネイティブのROS 2よりもメモリ消費量が少なく，WebAssembly上で実アプリケーションのノードを実行することができる環境であることを示している．
+mROS 2-WasmはROS 2と比べてメモリ消費量が少なく，mROS 2-POSIXと比べてメモリ消費量が大きいということがわかった．
+これは，mROS 2-WasmはmROS 2-POSIXをWasm化したものであり，Wasm分のメモリ消費がmROS 2-POSIXに計上されているため，mROS 2-POSIXよりもメモリ消費量が大きいからである．
+ネイティブのROS 2よりもメモリ消費量が少ないことで，ROS 2を動作させるよりも，mROS 2-Wasmを動作させたほうがメモリ消費量の削減が可能であることが示された．
+\\　今回の実験によって，実アプリケーションを動作させても，mROS 2-POSIXはROS 2よりメモリ消費量と通信性能で優れており，リソースの限られたデバイスでノードを実行する場合，mROS 2-POSIXのほうがROS 2よりも適していることを示すことができた．
+mROS 2-POSIXをWasm化したmROS 2-Wasmは実アプリケーションをClassicインタプリタでコンパイルした場合，通信性能でROS 2よりも劣るものの，メモリ消費量でROS 2より優れていることから，ROS 2をWasm化するよりmROS 2-POSIXをWasm化することでメモリ使用量の削減ができることを示せた．
+ただ，通信性能の劣化はコンパイル方式をJITもしくはAOTにすることで改善することができる可能性がある．
+先行研究でソフトウェア基盤として採用されたmROS 2-POSIXは実アプリケーション上でも軽量ソフトウェア基盤として最適であり，mROS 2-Wasmを実アプリケーション上で動作させた場合でも，mROS 2-POSIXの軽量という利点を損なわずWasm化することができていることを示した．
 

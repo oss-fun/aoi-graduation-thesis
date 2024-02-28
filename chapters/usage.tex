@@ -28,6 +28,18 @@
         \label{fig:subfig_b}
     \end{minipage}
 \end{figure}
+\begin{table}[ht]
+    \caption{QoSの影響}
+    \label{tab:qos}
+    \centering
+    \begin{tabular}{|c|c|c|} \hline
+      Publisher & Subscription & 適合性 \\ \hline
+      Best effort & Best effort & Yes \\ \hline
+      Best effort & Reliable & No \\ \hline
+      Reliable & Best effort & Yes \\ \hline
+      Reliable & Reliable & Yes \\ \hline
+    \end{tabular}
+  \end{table}
 \section{ROS}
 ロボットシステムを開発するにあたって現在はROS 2が主流であるが，その前身であるROSは，スタンフォード人工知能研究所の研究プロジェクトとから移管されたWillow Garage社によって開発が始まったロボットソフトウェア開発基盤である．
 最初の正式なディストリビューション版は，2010年3月にリリースされたBox Turtleで，その後，Fuerte，Groovy，Hydro，Indigo，Jade，Kinetic，Lunar，Melodic，Noetic，Foxy，Galactic，Humbleといったバージョンがリリースされている．
@@ -101,7 +113,12 @@ Service通信はパラメータ設定や取得に使用されることが多い�
 \subsection{QoS}
  QoSは，通信の信頼性や遅延時間，帯域幅などの通信品質を制御するための機能である．
  ROS 2にはQoSの設定として，データの到達を保証するReliability，多少のデータの欠損を許容するBest\_Effortがあり，ROS 2のノードにはデフォルトでReliabilityが設定されている．
-
+ ノード間の通信において，QoSによる影響を表\ref{tab:qos}に示す．
+Best\_EffortのPublisherとBest\_EffortのSubscriberの場合，SubscriberはPublisherからデータを受信できる．
+同様にReliableのPublisherとReliableのSubscriberの場合，SubscriberはPublisherからデータを受信できる．
+また，PublisherのQoS設定がBest\_Effort，SubscriberのQoS設定がReliableの場合，SubscriberはPublisherからデータを受信できない．
+ReliableのPublisherとBest\_EffortのSubscriberの場合，SubscriberはPublisherからデータを受信できる．
+このように，SubscriberのQoS設定によって，通信ができるかどうかが変わる．
 \section{mROS 2-POSIX}
 mROS 2-POSIXとはROS 2の軽量実行環境であるmROS 2をPOSIXに準拠したOSでも使用できることを目的に高瀬らによって作成されたPOSIX対応済みのmROS 2である[6]．
 mROS 2-POSIXはmROS 2同様，ROS 2を採用するロボットシステムにおいて通信方式とメモリ軽量な実行環境を確立することができる組み込み技術を導入することにより，分散型のロボットシステムにおける応答性やリアルタイム性の向上，消費電力の削減が可能になる．
@@ -119,11 +136,11 @@ mROS 2通信ライブラリは，ユーザアプリケーションに対して�
 UDPについては組込み向けのCによる軽量実装であるlwIP（Light Weight IP）[18]が採用されている．
 RTOSには，非常に短い間隔で正確な時間測定を可能にする高分解能タイマ（High Resolution Timer）やシステムが待機状態のときにエネルギー消費を削減できるティックレス（Tickless）の低消費電力な処理遅延機能など，高いリアルタイム性と安全性が求められる軽量な組込みシステムに適した設計がなされている．
 \section{WebAssembly}
-WebAssembly（Wasm）は，C，C++，C\#，Rustなどの言語で書かれたプログラムをコンパイルのターゲットWeb上でプログラムを高速に実行するために設計された，スタックベースの仮想マシンで実行される仮想命令アーキテクチャである[4][16]．
+WebAssembly（Wasm）は，C，C++，C\#，Rustなどの言語で書かれたプログラムをコンパイルのターゲットWeb上でプログラムを高速に実行するために設計された，スタックベースの仮想マシンで実行される仮想命令アーキテクチャである[24][27]．
 サンドボックスな環境でアプリケーションは実行されるため，ハードウェアや言語，プラットフォームに依存せず，ネイティブに近い実行速度でコードを実行できるという性質がある[24]．
 Wasmの性質からWebブラウザ以外の実行環境として利用する取り組みがあり，Webの外部でWasmを実行するためのAPI群としてWASI（WebAssembly System Interface）[25]が提案された．
 WASIを用いることでファイルやディレクトリ，ネットワークソケットなど，様々なリソースにWasmからアクセスできるようになり，Webブラウザ以外の実行環境として動作するWasmランタイムの開発が進んだ．
-\subsection*{WAMR}
+\subsection{WAMR}
 WebAssemblyの実行環境としてWAMR（WebAssembly Micro Runtime）[26]がある．
 WAMR は，組込みやIoT，クラウドなど，様々なプラットフォームで動くようにメモリ消費量が小さくなるよう設計された，オープンソースのWasm ランタイムである．
 Wasm プログラムの実行方式としてはWasm バイナリを逐次実行するインタプリタ方式と（Classic），Classicインタプリタを基礎としながらも最適化技術を取り入れ，実行速度を高速にしたFastインタプリタと，事前にWasm バイナリをネイティブバイナリにコンパイルして実行するAoT（Ahead Of Time），Wasm バイナリを実行時にネイティブバイナリにコンパイルして実行するJIT（Just In Time）があり，そのうちAoT とJIT ではネイティブと同等の実行速度で動作する．
